@@ -19,6 +19,8 @@ transform = Compose([ToTensor(),
                      ])
 
 train_cifar10 = CIFAR10(root='../data/', download=False, train=True, transform=transform)
+test_cifar10 = CIFAR10(root='../data/', download=False, train=False, transform=transform)
 
-print(train_cifar10[0])
-# print("etset")
+# print(train_cifar10.train_data)
+print(test_cifar10.test_data)
+print("etset")
