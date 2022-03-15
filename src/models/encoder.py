@@ -45,8 +45,3 @@ if __name__ == "__main__":
     outputs = E(inputs)
     print(outputs.size())
 
-
-class Decoder(nn.Module):
-    def __init__(self):
-        super(Decoder, self).__init__()
-
