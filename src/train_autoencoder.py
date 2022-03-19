@@ -19,6 +19,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 SAVE_PATH = "../weights/ae/"
+if not os.path.exists(SAVE_PATH):
+    os.makedirs(SAVE_PATH)
 
 # Hyper-parameters
 batch_size = 128
@@ -56,7 +58,7 @@ decoder = Decoder(image_size=image_size,
 
 criterion = nn.MSELoss()
 optimizer = Adam([{'params':encoder.parameters(),
-                              'params': decoder.parameters()}],
+                   'params': decoder.parameters()}],
                              lr=learning_rate,
                              weight_decay=1e-5,
                              betas=(beta1, beta2))
@@ -82,9 +84,6 @@ for epoch in range(num_epoch):
     plt.imshow(grid.permute(1,2,0))
     plt.show()
 
-    # if not os.path.exists(SAVE_PATH):
-    #     os.makedirs(SAVE_PATH)
 
-
-
+    
 
