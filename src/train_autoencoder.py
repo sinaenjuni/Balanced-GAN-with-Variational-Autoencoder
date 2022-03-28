@@ -1,4 +1,6 @@
 import os
+import random
+import numpy as np
 import matplotlib.pyplot as plt
 
 import torch
@@ -14,6 +16,20 @@ from dataset import mnist
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
+
+# %% --------------------------------------- Fix Seeds -----------------------------------------------------------------
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+
+torch.backends.cudnn.deterministic = True
+# torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.benchmark = False
+# torch.backends.cudnn.benchmark = True
+
 
 SAVE_PATH = "../weights/ae/"
 if not os.path.exists(SAVE_PATH):
@@ -34,7 +50,9 @@ beta2 = 0.9
 train_loader = mnist(image_size=32, train=True, batch_size=128)
 test_loader  = mnist(image_size=32, train=False, batch_size=128)
 
-fixed_latent_vector = torch.randn((100, 128)).to(device)
+
+
+fixed_test_dataset = next(iter(test_loader))[0].to(device)
 
 
 encoder = Encoder(image_size=image_size,
@@ -69,13 +87,17 @@ for epoch in range(num_epoch):
 
         train_loss += loss.item()
 
-    print(f"Epoch: {train_loss}")
+    print(f"Epoch: {train_loss/len(train_loader)}")
 
     decoder.eval()
-    fixed_vector_output = decoder(fixed_latent_vector)
+
+    fixed_vector_output = decoder(encoder(fixed_test_dataset))
     grid = make_grid(fixed_vector_output.detach().cpu(), nrow=10, normalize=True)
     plt.imshow(grid.permute(1,2,0))
     plt.show()
+
+    torch.save(encoder.state_dict(), SAVE_PATH + f"encoder_{epoch}.pth")
+    torch.save(decoder.state_dict(), SAVE_PATH + f"decoder_{epoch}.pth")
 
 
     

@@ -53,7 +53,7 @@ class VAE(nn.Module):
     def decoder(self, z):
         h = F.relu(self.fc4(z))
         h = F.relu(self.fc5(h))
-        return F.sigmoid(self.fc6(h))
+        return torch.tanh_(self.fc6(h))
 
     def forward(self, x):
         mu, log_var = self.encoder(x.view(-1, 784))
@@ -70,7 +70,9 @@ if torch.cuda.is_available():
 optimizer = optim.Adam(vae.parameters())
 # return reconstruction error + KL divergence losses
 def loss_function(recon_x, x, mu, log_var):
-    BCE = F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
+    # BCE = F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
+    BCE = F.mse_loss(recon_x, x.view(-1, 784), reduction='sum')
+
     KLD = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
     return BCE + KLD
 

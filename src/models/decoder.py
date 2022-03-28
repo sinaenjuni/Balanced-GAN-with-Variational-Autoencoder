@@ -26,8 +26,7 @@ class Decoder(nn.Module):
         self.layer2 = self.getLayer(std_channel*4, std_channel*2, kernel_size=4, stride=2, padding=1)   # 4*4*128
         self.layer3 = self.getLayer(std_channel*2, std_channel*2, kernel_size=4, stride=2, padding=1)   # 8*8*128
         self.layer4 = self.getLayer(std_channel*2, std_channel*1, kernel_size=4, stride=2, padding=1)   # 16*16*64
-        self.layer5 = nn.Sequential(nn.ConvTranspose2d(std_channel*1, image_channel, kernel_size=4, stride=2, padding=1),
-                                    nn.Tanh())   # 32*32*3
+        self.layer5 = nn.Sequential(nn.ConvTranspose2d(std_channel*1, image_channel, kernel_size=4, stride=2, padding=1))   # 32*32*3
 
     def forward(self, x):
         x = self.layer1(x)
@@ -36,6 +35,7 @@ class Decoder(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.layer5(x)
+        x = torch.tanh_(x)
         return x
 
 
