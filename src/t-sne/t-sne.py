@@ -10,15 +10,14 @@ import matplotlib.pylab as plt
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
-SAVA_PATH = f"../../weights/ae/"
-d
+SAVA_PATH = f"../../weights/ae/cifar10/"
 
-target_epoch = 60
+
+target_epoch = 99
 
 batch_size = 128
-num_epoch = 100
 image_size = 32
-image_channel = 1
+image_channel = 3
 std_channel = 64
 latent_dim = 128
 
@@ -36,8 +35,8 @@ decoder.load_state_dict(torch.load(SAVA_PATH+f"decoder_{target_epoch}.pth"))
 
 
 
-train_loader = mnist(image_size=32, train=True, batch_size=128)
-test_loader  = mnist(image_size=32, train=False, batch_size=128)
+train_loader = cifar(image_size=32, train=True, batch_size=128)
+test_loader  = cifar(image_size=32, train=False, batch_size=128)
 
 
 latents = np.empty((0, 128))

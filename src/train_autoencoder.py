@@ -10,7 +10,7 @@ from torchvision.utils import make_grid
 
 from models.encoder import Encoder
 from models.decoder import Decoder
-from dataset import mnist
+from dataset import mnist, cifar
 
 # import matplotlib.pyplot as plt
 
@@ -31,7 +31,7 @@ torch.backends.cudnn.benchmark = False
 # torch.backends.cudnn.benchmark = True
 
 
-SAVE_PATH = "../weights/ae/"
+SAVE_PATH = "../weights/ae/cifar10/"
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
@@ -39,7 +39,7 @@ if not os.path.exists(SAVE_PATH):
 batch_size = 128
 num_epoch = 100
 image_size = 32
-image_channel = 1
+image_channel = 3
 std_channel = 64
 latent_dim = 128
 learning_rate = 0.0002
@@ -47,8 +47,8 @@ beta1 = 0.5
 beta2 = 0.9
 
 
-train_loader = mnist(image_size=32, train=True, batch_size=128)
-test_loader  = mnist(image_size=32, train=False, batch_size=128)
+train_loader = cifar(image_size=32, train=True, batch_size=128)
+test_loader  = cifar(image_size=32, train=False, batch_size=128)
 
 
 
@@ -89,12 +89,12 @@ for epoch in range(num_epoch):
 
     print(f"Epoch: {train_loss/len(train_loader)}")
 
-    decoder.eval()
-
-    fixed_vector_output = decoder(encoder(fixed_test_dataset))
-    grid = make_grid(fixed_vector_output.detach().cpu(), nrow=10, normalize=True)
-    plt.imshow(grid.permute(1,2,0))
-    plt.show()
+    with torch.no_grad():
+        decoder.eval()
+        fixed_vector_output = decoder(encoder(fixed_test_dataset))
+        grid = make_grid(fixed_vector_output.detach().cpu(), nrow=10, normalize=True)
+        plt.imshow(grid.permute(1,2,0))
+        plt.show()
 
     torch.save(encoder.state_dict(), SAVE_PATH + f"encoder_{epoch}.pth")
     torch.save(decoder.state_dict(), SAVE_PATH + f"decoder_{epoch}.pth")
