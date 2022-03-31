@@ -71,7 +71,8 @@ embedding = Label_embedding_model(num_classes=num_classes,
 
 criterion = nn.MSELoss()
 optimizer = Adam([{'params':encoder.parameters(),
-                   'params': decoder.parameters()}],
+                   'params': decoder.parameters(),
+                   'params': embedding.parameters()}],
                              lr=learning_rate,
                              weight_decay=1e-5,
                              betas=(beta1, beta2))
