@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 def cifar(image_size=32, train=True, batch_size=64) -> DataLoader:
         transform = Compose([Resize(image_size),
                              ToTensor(),
-                             # Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+                             Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
                              ])
         dataset = CIFAR10
 
