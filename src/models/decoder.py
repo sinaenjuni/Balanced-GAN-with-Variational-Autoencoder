@@ -35,7 +35,8 @@ class Decoder(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.layer5(x)
-        x = torch.tanh_(x)
+        # x = torch.tanh_(x)
+        x = torch.sigmoid_(x)
         return x
 
 
