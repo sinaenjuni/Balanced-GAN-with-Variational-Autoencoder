@@ -35,8 +35,8 @@ class Decoder(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.layer5(x)
-        # x = torch.tanh_(x)
-        x = torch.sigmoid_(x)
+        x = torch.tanh_(x)
+        # x = torch.sigmoid_(x)
         return x
 
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         if isinstance(m, nn.ConvTranspose2d):
             nn.init.normal_(m.weight.data, std=0.02)
 
-    D = Decoder(image_size=32, image_channel=3, std_channel=64, latent_dim=128)
+    D = Decoder(image_size=64, image_channel=3, std_channel=64, latent_dim=128)
     D.apply(initialize_weights)
 
     inputs = torch.randn((1, 128))

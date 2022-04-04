@@ -38,10 +38,10 @@ if __name__ == "__main__":
         if isinstance(m, nn.Conv2d):
             nn.init.normal_(m.weight.data, std=0.02)
 
-    E = Encoder(image_size=32, image_channel=3, std_channel=64, latent_dim=128)
+    E = Encoder(image_size=64, image_channel=3, std_channel=64, latent_dim=128)
     E.apply(initialize_weights)
 
-    inputs = torch.randn((128, 3, 32, 32))
+    inputs = torch.randn((128, 3, 64, 64))
     outputs = E(inputs)
     print(outputs.size())
 

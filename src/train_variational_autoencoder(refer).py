@@ -8,7 +8,6 @@ from torch.autograd import Variable
 from torchvision.utils import save_image, make_grid
 import matplotlib.pyplot as plt
 
-
 from dataset import mnist
 
 

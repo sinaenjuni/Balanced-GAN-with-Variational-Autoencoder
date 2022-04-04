@@ -10,7 +10,7 @@ from torchvision.utils import make_grid
 
 from models.encoder import Encoder
 from models.decoder import Decoder
-from dataset import mnist, cifar
+from dataset import mnist, cifar, fashion
 
 # import matplotlib.pyplot as plt
 
@@ -31,29 +31,25 @@ torch.backends.cudnn.benchmark = False
 # torch.backends.cudnn.benchmark = True
 
 
-SAVE_PATH = "../weights/ae/cifar10/"
-if not os.path.exists(SAVE_PATH):
-    os.makedirs(SAVE_PATH)
 
 # Hyper-parameters
 batch_size = 128
-num_epoch = 100
-image_size = 32
-image_channel = 3
+num_epoch = 30
 std_channel = 64
 latent_dim = 128
 learning_rate = 0.0002
 beta1 = 0.5
 beta2 = 0.9
+dataset = mnist
+image_size = 64
+image_channel = 1
 
+SAVE_PATH = f"../weights/ae/{dataset}/"
+if not os.path.exists(SAVE_PATH):
+    os.makedirs(SAVE_PATH)
 
-train_loader = cifar(image_size=32, train=True, batch_size=128)
-test_loader  = cifar(image_size=32, train=False, batch_size=128)
-
-
-
-fixed_test_dataset = next(iter(test_loader))[0].to(device)
-
+train_loader = dataset(image_size=image_size, train=True, batch_size=128)
+test_loader  = dataset(image_size=image_size, train=False, batch_size=128)
 
 encoder = Encoder(image_size=image_size,
                   image_channel=image_channel,
@@ -74,8 +70,9 @@ optimizer = Adam([{'params':encoder.parameters(),
 
 for epoch in range(num_epoch):
     train_loss = 0
-    for i, (image, labels) in enumerate(train_loader):
+    for i, (image, label) in enumerate(train_loader):
         image = image.to(device)
+        label = label.to(device)
 
         encode = encoder(image)
         decode = decoder(encode)
@@ -87,17 +84,38 @@ for epoch in range(num_epoch):
 
         train_loss += loss.item()
 
-    print(f"Epoch: {train_loss/len(train_loader)}")
+    print(f"Epoch: {epoch+1}/{num_epoch}, Loss: {train_loss/len(train_loader)}")
+    torch.save(encoder.state_dict(), SAVE_PATH + f"encoder_{epoch+1}.pth")
+    torch.save(decoder.state_dict(), SAVE_PATH + f"decoder_{epoch+1}.pth")
 
-    with torch.no_grad():
-        decoder.eval()
-        fixed_vector_output = decoder(encoder(fixed_test_dataset))
-        grid = make_grid(fixed_vector_output.detach().cpu(), nrow=10, normalize=True)
-        plt.imshow(grid.permute(1,2,0))
-        plt.show()
 
-    torch.save(encoder.state_dict(), SAVE_PATH + f"encoder_{epoch}.pth")
-    torch.save(decoder.state_dict(), SAVE_PATH + f"decoder_{epoch}.pth")
+# #################### Save numpy ###################
+# test_encode_results = np.empty((0,128))
+# test_decode_results = np.empty((0, image_channel, image_size, image_size))
+# for idx, (image, labels) in enumerate(test_loader):
+#     image = image.to(device)
+#     labels = labels.to(device)
+#     with torch.no_grad():
+#         encoder.eval()
+#         decoder.eval()
+#
+#         encode = encoder(image)
+#         decode = decoder(encode)
+#
+#     test_encode_results = np.append(test_encode_results, encode.detach().cpu().numpy(), axis=0)
+#     test_decode_results = np.append(test_decode_results, decode.detach().cpu().numpy(), axis=0)
+#
+#     print(f"Epoch: {idx+1}/{len(test_loader)}")
+
+
+# with torch.no_grad():
+#     decoder.eval()
+#     fixed_vector_output = decoder(encoder(fixed_test_dataset))
+#     grid = make_grid(fixed_vector_output.detach().cpu(), nrow=10, normalize=True)
+#     plt.imshow(grid.permute(1,2,0))
+#     plt.show()
+#
+
 
 
     
