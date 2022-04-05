@@ -9,7 +9,7 @@ class Decoder(nn.Module):
                                        kernel_size=kernel_size,
                                        stride=stride,
                                        padding=padding),
-                             nn.BatchNorm2d(num_outout),
+                             # nn.BatchNorm2d(num_outout),
 
                              nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
@@ -35,8 +35,8 @@ class Decoder(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.layer5(x)
-        x = torch.tanh_(x)
-        # x = torch.sigmoid_(x)
+        # x = torch.tanh_(x)
+        x = torch.sigmoid_(x)
         return x
 
 

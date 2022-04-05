@@ -1,16 +1,14 @@
 import os
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
 from torch.optim import Adam
-from torchvision.utils import make_grid
 
-from models.encoder import Encoder
-from models.decoder import Decoder
-from dataset import mnist, cifar, fashion
+from models.modules.encoder import Encoder
+from models.modules.decoder import Decoder
+from dataset import mnist
 
 # import matplotlib.pyplot as plt
 

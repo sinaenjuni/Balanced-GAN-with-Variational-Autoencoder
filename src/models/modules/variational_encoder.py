@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class Encoder(nn.Module):
+class VariationalEncoder(nn.Module):
     def getLayer(self, num_input, num_output, kernel_size, stride, padding):
         return nn.Sequential(nn.Conv2d(in_channels=num_input,
                                        out_channels=num_output,
@@ -12,7 +12,7 @@ class Encoder(nn.Module):
                              nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
     def __init__(self, image_size, image_channel, std_channel, latent_dim):
-        super(Encoder, self).__init__()
+        super(VariationalEncoder, self).__init__()
 
         image_size = image_size // 2 ** 4
 
@@ -37,15 +37,16 @@ class Encoder(nn.Module):
         x = self.layer4(x)
         x = torch.flatten(x, start_dim=1)
         # x = self.layer5(x)
-        return self.sampling(self.layer5(x), self.layer5_1(x)), self.layer5(x), self.layer5_1(x)
-
+        mu = self.layer5(x)
+        log_var = self.layer5_1(x)
+        return self.sampling(mu, log_var), mu, log_var
 
 if __name__ == "__main__":
     def initialize_weights(m):
         if isinstance(m, nn.Conv2d):
             nn.init.normal_(m.weight.data, std=0.02)
 
-    E = Encoder(image_size=64, image_channel=3, std_channel=64, latent_dim=128)
+    E = VariationalEncoder(image_size=64, image_channel=3, std_channel=64, latent_dim=128)
     E.apply(initialize_weights)
 
     inputs = torch.randn((128, 3, 64, 64))

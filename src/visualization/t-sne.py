@@ -1,8 +1,8 @@
 import torch
 import numpy as np
-from dataset import mnist, cifar
-from models.encoder import Encoder
-from models.decoder import Decoder
+from dataset import cifar
+from models.modules.encoder import Encoder
+from models.modules.decoder import Decoder
 from sklearn.manifold import TSNE
 import matplotlib.pylab as plt
 
