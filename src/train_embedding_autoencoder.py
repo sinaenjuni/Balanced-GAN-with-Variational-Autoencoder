@@ -50,7 +50,7 @@ dataset = mnist
 image_size = 64
 image_channel = 1
 
-SAVE_PATH = f"../weights/embedding_ae/{dataset}/"
+SAVE_PATH = f"../weights/embedding_ae/{dataset.__name__}/"
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
