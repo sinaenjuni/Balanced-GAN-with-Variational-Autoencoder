@@ -14,20 +14,21 @@ class Encoder(nn.Module):
     def __init__(self, image_size, image_channel, std_channel, latent_dim):
         super(Encoder, self).__init__()
 
-        image_size = image_size // 2 ** 4
+        self.image_size = image_size // 2 ** 4
+        self.channels = [std_channel, std_channel*2, std_channel*4]
 
-        self.layer1 = self.getLayer(image_channel, std_channel,   kernel_size=4, stride=2, padding=1)
-        self.layer2 = self.getLayer(std_channel,   std_channel*2, kernel_size=4, stride=2, padding=1)
-        self.layer3 = self.getLayer(std_channel*2, std_channel*2, kernel_size=4, stride=2, padding=1)
-        self.layer4 = self.getLayer(std_channel*2, std_channel*4, kernel_size=4, stride=2, padding=1)
-        self.layer5 = nn.Sequential(nn.Linear(image_size * image_size * std_channel*4, latent_dim),
+        self.layer1 = self.getLayer(image_channel,    self.channels[0], kernel_size=4, stride=2, padding=1)
+        self.layer2 = self.getLayer(self.channels[0], self.channels[1], kernel_size=4, stride=2, padding=1)
+        self.layer3 = self.getLayer(self.channels[1], self.channels[1], kernel_size=4, stride=2, padding=1)
+        self.layer4 = self.getLayer(self.channels[1], self.channels[2], kernel_size=4, stride=2, padding=1)
+        self.layer5 = nn.Sequential(nn.Linear(self.image_size * self.image_size * self.channels[-1], latent_dim),
                                           nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
     def forward(self, x):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        x = self.layer4(x)
+        x = self.layer4(x); print(x.size())
         x = torch.flatten(x, start_dim=1)
         x = self.layer5(x)
         return x

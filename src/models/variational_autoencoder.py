@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from models.modules.variational_encoder import VariationalEncoder
 from models.modules.decoder import Decoder
