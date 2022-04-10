@@ -6,8 +6,7 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 
-from models.modules.encoder import Encoder
-from models.modules.decoder import Decoder
+from models.autoencoder import AE
 from dataset import mnist
 
 # import matplotlib.pyplot as plt
@@ -49,22 +48,24 @@ if not os.path.exists(SAVE_PATH):
 train_loader = dataset(image_size=image_size, train=True, batch_size=128)
 test_loader  = dataset(image_size=image_size, train=False, batch_size=128)
 
-encoder = Encoder(image_size=image_size,
-                  image_channel=image_channel,
-                  std_channel=std_channel,
-                  latent_dim=latent_dim).to(device)
 
-decoder = Decoder(image_size=image_size,
-                  image_channel=image_channel,
-                  std_channel=std_channel,
-                  latent_dim=latent_dim).to(device)
+ae = AE(image_size=image_size, image_channel=image_channel, std_channel=std_channel, latent_dim=latent_dim, norm='bn').to(device)
+
+
+def initialize_weights(m):
+    if isinstance(m, nn.Conv2d):
+        nn.init.normal_(m.weight.data, std=0.02)
+        nn.init.normal_(m.bias.data, std=0.02)
+    if isinstance(m, nn.ConvTranspose2d):
+        nn.init.normal_(m.weight.data, std=0.02)
+        nn.init.normal_(m.bias.data, std=0.02)
+ae.apply(initialize_weights)
 
 criterion = nn.MSELoss()
-optimizer = Adam([{'params':encoder.parameters(),
-                   'params': decoder.parameters()}],
-                             lr=learning_rate,
-                             weight_decay=1e-5,
-                             betas=(beta1, beta2))
+optimizer = Adam(ae.parameters(),
+                 lr=learning_rate,
+                 weight_decay=1e-5,
+                 betas=(beta1, beta2))
 
 for epoch in range(num_epoch):
     train_loss = 0
@@ -72,8 +73,7 @@ for epoch in range(num_epoch):
         image = image.to(device)
         label = label.to(device)
 
-        encode = encoder(image)
-        decode = decoder(encode)
+        decode = ae(image)
         loss = criterion(decode, image)
 
         optimizer.zero_grad()
@@ -83,8 +83,8 @@ for epoch in range(num_epoch):
         train_loss += loss.item()
 
     print(f"Epoch: {epoch+1}/{num_epoch}, Loss: {train_loss/len(train_loader)}")
-    torch.save(encoder.state_dict(), SAVE_PATH + f"encoder_{epoch+1}.pth")
-    torch.save(decoder.state_dict(), SAVE_PATH + f"decoder_{epoch+1}.pth")
+    # torch.save(ae.state_dict(), SAVE_PATH + f"encoder_{epoch+1}.pth")
+    # torch.save(decoder.state_dict(), SAVE_PATH + f"decoder_{epoch+1}.pth")
 
 
 # #################### Save numpy ###################

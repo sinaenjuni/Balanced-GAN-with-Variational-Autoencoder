@@ -12,6 +12,7 @@ from torch.optim import Adam
 from models.modules.encoder import Encoder
 from models.modules.decoder import Decoder
 from models.modules.embedding import Label_embedding_model
+from models.embedding_autoencoder import EAE
 from dataset import mnist
 
 # import matplotlib.pyplot as plt
@@ -41,7 +42,8 @@ latent_dim = 128
 learning_rate = 0.0002
 beta1 = 0.5
 beta2 = 0.9
-num_classes = 10
+num_class = 10
+norm = 'bn'
 
 dataset = mnist
 image_size = 64
@@ -67,39 +69,55 @@ def initialize_weights(m):
         nn.init.normal_(m.weight.data, std=0.02)
         # nn.init.normal_(m.bias.data, std=0.02)
 
-encoder = Encoder(image_size=image_size,
-                  image_channel=image_channel,
-                  std_channel=std_channel,
-                  latent_dim=latent_dim).to(device).apply(initialize_weights)
+eae = EAE(image_size=image_size,
+          image_channel=image_channel,
+          std_channel=std_channel,
+          latent_dim=latent_dim,
+          num_class=num_class,
+          norm=norm).to(device)
 
-decoder = Decoder(image_size=image_size,
-                  image_channel=image_channel,
-                  std_channel=std_channel,
-                  latent_dim=latent_dim).to(device).apply(initialize_weights)
-
-embedding = Label_embedding_model(num_classes=num_classes,
-                                  latent_dim=latent_dim).to(device)
-
+optimizer = Adam(eae.parameters(),
+                  lr=learning_rate,
+                  weight_decay=1e-5,
+                  betas=(beta1, beta2))
 criterion = nn.MSELoss()
-optimizer = Adam([{'params': encoder.parameters(),
-                   'params': embedding.parameters(),
-                   'params': decoder.parameters()
-                   }],
-                             lr=learning_rate,
-                             weight_decay=1e-5,
-                             betas=(beta1, beta2))
+
+
+# encoder = Encoder(image_size=image_size,
+#                   image_channel=image_channel,
+#                   std_channel=std_channel,
+#                   latent_dim=latent_dim).to(device).apply(initialize_weights)
+#
+# decoder = Decoder(image_size=image_size,
+#                   image_channel=image_channel,
+#                   std_channel=std_channel,
+#                   latent_dim=latent_dim).to(device).apply(initialize_weights)
+#
+# embedding = Label_embedding_model(num_classes=num_class,
+#                                   latent_dim=latent_dim).to(device)
+
+# optimizer = Adam([{'params': encoder.parameters(),
+#                    'params': embedding.parameters(),
+#                    'params': decoder.parameters()
+#                    }],
+#                              lr=learning_rate,
+#                              weight_decay=1e-5,
+#                              betas=(beta1, beta2))
+
 
 
 for epoch in range(num_epoch):
     train_loss = 0
-    for i, (image, labels) in enumerate(train_loader):
+    for i, (image, label) in enumerate(train_loader):
         image = image.to(device)
-        labels = labels.to(device)
+        label = label.to(device)
 
-        encode = encoder(image)
-        label_embedding = embedding(encode, labels)
-        decode = decoder(label_embedding)
+        # encode = encoder(image)
+        # label_embedding = embedding(encode, labels)
+        # decode = decoder(label_embedding)
+        decode = eae(image, label)
         loss = criterion(decode, image)
+
 
         optimizer.zero_grad()
         loss.backward()
@@ -107,10 +125,10 @@ for epoch in range(num_epoch):
 
         train_loss += loss.item()
 
-    print(f"Epoch: {epoch+1}/{num_epoch}, Loss: {train_loss/len(train_loader)}")
-    torch.save(encoder.state_dict(),         SAVE_PATH + f"encoder_{epoch+1}.pth")
-    torch.save(embedding.state_dict(),       SAVE_PATH + f"embedding_{epoch+1}.pth")
-    torch.save(decoder.state_dict(),         SAVE_PATH + f"decoder_{epoch+1}.pth")
+    print(f"Epoch: {epoch+1}/{num_epoch}, Loss: {train_loss}")
+    # torch.save(encoder.state_dict(),         SAVE_PATH + f"encoder_{epoch+1}.pth")
+    # torch.save(embedding.state_dict(),       SAVE_PATH + f"embedding_{epoch+1}.pth")
+    # torch.save(decoder.state_dict(),         SAVE_PATH + f"decoder_{epoch+1}.pth")
 
 # #################### Save numpy ###################
 # test_encode_results = np.empty((0,128))

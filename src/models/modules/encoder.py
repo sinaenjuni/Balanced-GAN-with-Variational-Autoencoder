@@ -28,10 +28,11 @@ class Encoder(nn.Module):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        x = self.layer4(x); print(x.size())
+        x = self.layer4(x)
         x = torch.flatten(x, start_dim=1)
         x = self.layer5(x)
         return x
+
 
 
 if __name__ == "__main__":
