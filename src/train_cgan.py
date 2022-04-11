@@ -57,7 +57,7 @@ dataset = 'fashion_mnist'
 image_size = 64
 image_channel = 1
 
-SAVE_PATH = f'weights/eae/{dataset}/'
+SAVE_PATH = f'/home/sin/git/ae/src/weights/eae/{dataset}/'
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
@@ -125,22 +125,22 @@ eae_optimizer = Adam(eae.parameters(),
 mse_loss = nn.MSELoss()
 
 
-# for epoch in range(eae_num_epoch):
-#     train_loss = 0
-#     for idx, (image, label) in enumerate(train_loader):
-#         image = image.to(device)
-#         label = label.to(device)
-#
-#         decode = eae(image, label)
-#         loss = mse_loss(decode, image)
-#
-#         eae_optimizer.zero_grad()
-#         loss.backward()
-#         eae_optimizer.step()
-#
-#         train_loss += loss.item()
-#
-#     print(f"Epoch: {epoch + 1}/{eae_num_epoch} ({idx}), Loss: {train_loss/len(train_loader)}")
+for epoch in range(eae_num_epoch):
+    train_loss = 0
+    for idx, (image, label) in enumerate(train_loader):
+        image = image.to(device)
+        label = label.to(device)
+
+        decode = eae(image, label)
+        loss = mse_loss(decode, image)
+
+        eae_optimizer.zero_grad()
+        loss.backward()
+        eae_optimizer.step()
+
+        train_loss += loss.item()
+
+    print(f"Epoch: {epoch + 1}/{eae_num_epoch} ({idx}), Loss: {train_loss/len(train_loader)}")
 
 with torch.no_grad():
     eae.eval()
@@ -256,6 +256,10 @@ for epoch in range(gan_num_epoch):
 
         print(f"Epoch: {epoch+1}, index: {idx}/{len(train_loader)}, D_loss: {d_loss}, G_loss: {g_loss}")
     plt_img(epoch)
+
+
+torch.save(g.state_dict(), SAVE_PATH + f"g_{eae_num_epoch}.pth")
+torch.save(d.state_dict(), SAVE_PATH + f"d_{eae_num_epoch}.pth")
 
     #
     #     fake_image = G(noise)
