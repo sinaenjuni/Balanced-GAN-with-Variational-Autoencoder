@@ -49,7 +49,7 @@ latent_dim = 128
 num_class = 10
 imb_factor = 0.01
 learning_rate = 2e-4
-train_ratio = 1
+train_ratio = 5
 gp_weight = 10
 beta1 = 0.5
 beta2 = 0.9
@@ -205,6 +205,16 @@ def compute_gradient_penalty(D, real_samples, fake_samples, real_labels):
     gradient_penalty = torch.mean(( gradients2L2norm - 1 ) ** 2)
     return gradient_penalty
 
+def plt_img(epoch):
+    with torch.no_grad():
+        g.eval()
+        fixed_vector_output = g(fixed_noise, fixed_noise_label)
+        grid = make_grid(fixed_vector_output.detach().cpu(), nrow=10, normalize=True)
+        plt.axis('off')
+        plt.imshow(grid.permute(1, 2, 0))
+        plt.savefig(SAVE_PATH + 'generated_plot_%d.png' % epoch)
+        plt.show()
+    return
 
 
 for epoch in range(gan_num_epoch):
@@ -233,24 +243,19 @@ for epoch in range(gan_num_epoch):
             d_loss.backward()
             d_optimizer.step()
 
-    noise = torch.randn(_batch, latent_dim).to(device)
-    fake_label = (torch.rand(_batch, 1) * 10).long().to(device)
+        noise = torch.randn(_batch, latent_dim).to(device)
+        fake_label = (torch.rand(_batch, 1) * 10).long().to(device)
 
-    generated_image = g(noise, fake_label)
-    gen_img_logit = d(generated_image, fake_label)
-    g_loss = g_loss_function(gen_img_logit)
+        generated_image = g(noise, fake_label)
+        gen_img_logit = d(generated_image, fake_label)
+        g_loss = g_loss_function(gen_img_logit)
 
-    g_optimizer.zero_grad()
-    g_loss.backward()
-    g_optimizer.step()
+        g_optimizer.zero_grad()
+        g_loss.backward()
+        g_optimizer.step()
 
-    print(f"Epoch: {epoch+1}, index: {idx}, D_loss: {d_loss}, G_loss: {g_loss}")
-    with torch.no_grad():
-        g.eval()
-        fixed_vector_output = g(fixed_noise, fixed_noise_label)
-        grid = make_grid(fixed_vector_output.detach().cpu(), nrow=10, normalize=True)
-        plt.imshow(grid.permute(1,2,0))
-        plt.show()
+        print(f"Epoch: {epoch+1}, index: {idx}/{len(train_loader)}, D_loss: {d_loss}, G_loss: {g_loss}")
+    plt_img(epoch)
 
     #
     #     fake_image = G(noise)
