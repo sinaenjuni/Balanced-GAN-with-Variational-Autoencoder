@@ -7,9 +7,9 @@ import torch.nn as nn
 from torch.optim import Adam
 from torchvision.utils import make_grid
 
-from models.modules.discriminator import Discriminator
-from models.modules.decoder import Decoder
-from dataset import mnist
+from models.gan.discriminator_sam1 import Discriminator
+from models.modules.decoder_module import Decoder_module
+from datasets.dataset import mnist
 
 import matplotlib.pyplot as plt
 
@@ -57,10 +57,10 @@ D = Discriminator(image_size=image_size,
                   std_channel=std_channel,
                   latent_dim=latent_dim).to(device)
 
-G = Decoder(image_size=image_size,
-                  image_channel=image_channel,
-                  std_channel=std_channel,
-                  latent_dim=latent_dim).to(device)
+G = Decoder_module(image_size=image_size,
+                   image_channel=image_channel,
+                   std_channel=std_channel,
+                   latent_dim=latent_dim).to(device)
 
 
 bce_loss = nn.BCELoss()

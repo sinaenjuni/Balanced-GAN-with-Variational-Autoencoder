@@ -4,13 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam
 from torchvision.utils import make_grid
 
-from models.variational_autoencoder import VAE
-from dataset import fashion, mnist, cifar
+from models.ae.autoencoder import VAE
+from datasets.dataset import cifar
 
 # import matplotlib.pyplot as plt
 

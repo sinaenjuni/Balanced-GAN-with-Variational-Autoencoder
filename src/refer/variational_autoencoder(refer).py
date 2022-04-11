@@ -4,17 +4,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
-from torch.autograd import Variable
-from torchvision.utils import save_image, make_grid
+from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 
-from dataset import mnist
+from datasets.dataset import mnist
 
 
 bs = 64
 # MNIST Dataset
-train_dataset = datasets.MNIST(root='../data/mnist/', train=True, transform=transforms.ToTensor(), download=True)
-test_dataset = datasets.MNIST(root='../data/mnist/', train=False, transform=transforms.ToTensor(), download=False)
+train_dataset = datasets.MNIST(root='../datasets/mnist/', train=True, transform=transforms.ToTensor(), download=True)
+test_dataset = datasets.MNIST(root='../datasets/mnist/', train=False, transform=transforms.ToTensor(), download=False)
 
 
 
@@ -131,7 +130,7 @@ def train(epoch):
         data = data.cuda()
         optimizer.zero_grad()
 
-        # recon_batch, mu, log_var = vae(data)
+        # recon_batch, mu, log_var = vae(datasets)
         recon_batch, mu, log_var = vaee(data)
 
 
@@ -154,7 +153,7 @@ def test():
     with torch.no_grad():
         for data, _ in test_loader:
             data = data.cuda()
-            # recon, mu, log_var = vae(data)
+            # recon, mu, log_var = vae(datasets)
             recon, mu, log_var = vaee(data)
 
             # sum up batch loss

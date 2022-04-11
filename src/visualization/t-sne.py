@@ -1,8 +1,8 @@
 import torch
 import numpy as np
-from dataset import cifar
-from models.modules.encoder import Encoder
-from models.modules.decoder import Decoder
+from datasets.dataset import cifar
+from models.modules.encoder_module import Encoder_module
+from models.modules.decoder_module import Decoder_module
 from sklearn.manifold import TSNE
 import matplotlib.pylab as plt
 
@@ -21,16 +21,16 @@ image_channel = 3
 std_channel = 64
 latent_dim = 128
 
-encoder = Encoder(image_size=image_size,
-                  image_channel=image_channel,
-                  std_channel=std_channel,
-                  latent_dim=latent_dim).to(device)
+encoder = Encoder_module(image_size=image_size,
+                         image_channel=image_channel,
+                         std_channel=std_channel,
+                         latent_dim=latent_dim).to(device)
 encoder.load_state_dict(torch.load(SAVA_PATH+f"encoder_{target_epoch}.pth"))
 
-decoder = Decoder(image_size=image_size,
-                  image_channel=image_channel,
-                  std_channel=std_channel,
-                  latent_dim=latent_dim).to(device)
+decoder = Decoder_module(image_size=image_size,
+                         image_channel=image_channel,
+                         std_channel=std_channel,
+                         latent_dim=latent_dim).to(device)
 decoder.load_state_dict(torch.load(SAVA_PATH+f"decoder_{target_epoch}.pth"))
 
 

@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from torch.optim import Adam
 from torchvision.utils import make_grid
 
-from src.dataset import mnist
+from datasets.dataset import mnist
 
 # import matplotlib.pyplot as plt
 

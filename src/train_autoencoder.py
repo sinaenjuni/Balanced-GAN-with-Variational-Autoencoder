@@ -6,8 +6,8 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 
-from models.autoencoder import AE
-from dataset import mnist
+from models.ae import AE
+from datasets.dataset import mnist
 
 # import matplotlib.pyplot as plt
 

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class Decoder(nn.Module):
+class Decoder_module(nn.Module):
     def getLayer(self, num_input, num_outout, kernel_size, stride, padding, norm):
         tconv = nn.ConvTranspose2d(in_channels=num_input,
                                        out_channels=num_outout,
@@ -22,7 +22,7 @@ class Decoder(nn.Module):
         return layer
 
     def __init__(self, image_size, image_channel, std_channel, latent_dim, norm):
-        super(Decoder, self).__init__()
+        super(Decoder_module, self).__init__()
 
         self.image_size = image_size // 2 ** 4
         self.std_channel = std_channel
@@ -43,8 +43,8 @@ class Decoder(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.layer5(x)
-        # x = torch.tanh_(x)
-        x = torch.sigmoid_(x)
+        x = torch.tanh_(x)
+        # x = torch.sigmoid_(x)
         return x
 
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         if isinstance(m, nn.ConvTranspose2d):
             nn.init.normal_(m.weight.data, std=0.02)
 
-    D = Decoder(image_size=64, image_channel=3, std_channel=64, latent_dim=128, norm='bn')
+    D = Decoder_module(image_size=64, image_channel=3, std_channel=64, latent_dim=128, norm='bn')
     D.apply(initialize_weights)
 
     inputs = torch.randn((1, 128))

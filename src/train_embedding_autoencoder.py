@@ -9,11 +9,8 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 
-from models.modules.encoder import Encoder
-from models.modules.decoder import Decoder
-from models.modules.embedding import Label_embedding_model
-from models.embedding_autoencoder import EAE
-from dataset import mnist
+from models.ae.embedding_autoencoder import EAE
+from datasets.dataset import mnist
 
 # import matplotlib.pyplot as plt
 
@@ -64,10 +61,10 @@ fixed_label = next(iter(test_loader))[1].to(device)
 def initialize_weights(m):
     if isinstance(m, nn.Conv2d):
         nn.init.normal_(m.weight.data, std=0.02)
-        # nn.init.normal_(m.bias.data, std=0.02)
+        # nn.init.normal_(m.bias.datasets, std=0.02)
     if isinstance(m, nn.ConvTranspose2d):
         nn.init.normal_(m.weight.data, std=0.02)
-        # nn.init.normal_(m.bias.data, std=0.02)
+        # nn.init.normal_(m.bias.datasets, std=0.02)
 
 eae = EAE(image_size=image_size,
           image_channel=image_channel,

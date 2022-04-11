@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from models.modules.encoder import Encoder
+from models.modules.encoder_module import Encoder_module
 
-class Discriminator(Encoder):
+class Discriminator(Encoder_module):
     def __init__(self, image_size, image_channel, std_channel, latent_dim):
         super(Discriminator, self).__init__(image_size, image_channel, std_channel, latent_dim)
 
@@ -12,8 +12,8 @@ class Discriminator(Encoder):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        x = self.layer4(x)
-        x = torch.flatten(x, start_dim=1)
+        x = self.feature(x)
+        # x = torch.flatten(x, start_dim=1)
         # x = self.layer5(x)
         x = self.adv(x)
         x = torch.sigmoid_(x)

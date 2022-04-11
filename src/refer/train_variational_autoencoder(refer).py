@@ -4,17 +4,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
-from torch.autograd import Variable
-from torchvision.utils import save_image, make_grid
+from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 
-from dataset import mnist
+from datasets.dataset import mnist
 
 
 bs = 64
 # MNIST Dataset
-train_dataset = datasets.MNIST(root='../data/mnist/', train=True, transform=transforms.ToTensor(), download=True)
-test_dataset = datasets.MNIST(root='../data/mnist/', train=False, transform=transforms.ToTensor(), download=False)
+train_dataset = datasets.MNIST(root='../datasets/mnist/', train=True, transform=transforms.ToTensor(), download=True)
+test_dataset = datasets.MNIST(root='../datasets/mnist/', train=False, transform=transforms.ToTensor(), download=False)
 
 
 

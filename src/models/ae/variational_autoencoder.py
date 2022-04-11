@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from models.modules.variational_encoder import VariationalEncoder
-from models.modules.decoder import Decoder
+from models.modules.decoder_module import Decoder_module
 
 
 class VAE(nn.Module):
@@ -11,10 +11,10 @@ class VAE(nn.Module):
                                       image_channel=image_channel,
                                       std_channel=std_channel,
                                       latent_dim=latent_dim)
-        self.decoder = Decoder(image_size=image_size,
-                          image_channel=image_channel,
-                          std_channel=std_channel,
-                          latent_dim=latent_dim)
+        self.decoder = Decoder_module(image_size=image_size,
+                                      image_channel=image_channel,
+                                      std_channel=std_channel,
+                                      latent_dim=latent_dim)
 
 
     def forward(self, x):
