@@ -261,6 +261,20 @@ for epoch in range(gan_num_epoch):
 torch.save(g.state_dict(), SAVE_PATH + f"g_{eae_num_epoch}.pth")
 torch.save(d.state_dict(), SAVE_PATH + f"d_{eae_num_epoch}.pth")
 
+# save gif
+import imageio
+ims = []
+for i in range(gan_num_epoch):
+    fname = 'generated_plot_%d.png' % i
+    dir = SAVE_PATH
+    if fname in os.listdir(dir):
+        print('loading png...', i)
+        im = imageio.imread(dir + fname, 'png')
+        ims.append(im)
+print('saving as gif...')
+imageio.mimsave(dir + 'training_demo.gif', ims, fps=3)
+
+
     #
     #     fake_image = G(noise)
     #
