@@ -13,7 +13,11 @@ from tensorflow.keras.models import load_model
 from skimage.transform import resize
 from sklearn.model_selection import train_test_split
 
-from torchvision.models.inception import inception_v3
+
+
+
+
+
 
 # %% --------------------------------------- Define FID ----------------------------------------------------------------
 # Reference: https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/

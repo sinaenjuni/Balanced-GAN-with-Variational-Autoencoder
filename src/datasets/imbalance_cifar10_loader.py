@@ -6,7 +6,7 @@ import os, sys
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Dataset, Sampler
 from PIL import Image
-from datasets.imbalance_cifar import IMBALANCECIFAR10, IMBALANCECIFAR100
+from datasets.imbalance_cifar import Imbalanced_CIFAR10, Imbalanced_CIFAR100
 
 
 class BalancedSampler(Sampler):
@@ -67,7 +67,7 @@ class ImbalanceCIFAR10DataLoader(DataLoader):
         ])
 
         if training:
-            dataset = IMBALANCECIFAR10(data_dir, train=True, download=True, transform=train_trsfm, imb_factor=imb_factor)
+            dataset = Imbalanced_CIFAR10(data_dir, train=True, download=True, transform=train_trsfm, imb_factor=imb_factor)
             val_dataset = datasets.CIFAR10(data_dir, train=False, download=True, transform=test_trsfm)  # test set
         else:
             dataset = datasets.CIFAR10(data_dir, train=False, download=True, transform=test_trsfm)  # test set

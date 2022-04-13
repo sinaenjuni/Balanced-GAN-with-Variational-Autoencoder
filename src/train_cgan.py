@@ -17,6 +17,7 @@ from models.ae.embedding_autoencoder import EAE
 from models.modules.weights_initialize_method import initialize_weights
 
 from datasets.imbalance_fashion_mnist import Imbalanced_FashionMNIST
+from datasets.imbalance_cifar import Imbalanced_CIFAR10
 # from torchvision.datasets import FashionMNIST
 from datasets.sampler import BalancedSampler
 
