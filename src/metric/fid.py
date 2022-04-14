@@ -13,7 +13,7 @@ from metric.inception_net import InceptionV3
 
 
 batch_size = 128
-imb_factor = 0.01
+imb_factor = 1
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 transforms = Compose([
@@ -41,7 +41,7 @@ test_dataset = Imbalanced_CIFAR10(root='~/data/',
 # sampler = BalancedSampler(train_dataset, retain_epoch_size=False)
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
-fixed_image, fixed_label = iter(test_loader).__next__()
+fixed_image, fixed_label = iter(train_loader).__next__()
 
 sample_transform = Compose([
     Resize(299),
@@ -64,7 +64,8 @@ for idx, (image, label) in enumerate(train_loader):
 
 real_image_features = torch.cat(real_image_features, 0)
 
-calculate_fid(real_image_features.cpu().numpy(), real_image_features.cpu().numpy())
+calculate_fid(real_image_features,
+              real_image_features)
 
 # %% --------------------------------------- Define FID ----------------------------------------------------------------
 # Reference: https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/
