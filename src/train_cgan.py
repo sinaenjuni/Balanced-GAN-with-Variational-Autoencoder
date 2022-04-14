@@ -54,9 +54,9 @@ train_ratio = 5
 gp_weight = 10
 beta1 = 0.5
 beta2 = 0.9
-dataset = 'fashion_mnist'
+dataset = 'cifar10'
 image_size = 64
-image_channel = 1
+image_channel = 3
 
 SAVE_PATH = f'/home/sin/git/ae/src/weights/eae/{dataset}/'
 if not os.path.exists(SAVE_PATH):
@@ -71,20 +71,20 @@ transforms = Compose([
     Normalize(mean=[0.5], std=[0.5])
 ])
 
-train_dataset = Imbalanced_FashionMNIST(root='~/data/',
+train_dataset = Imbalanced_CIFAR10(root='~/data/',
                        train=True,
                        imb_factor=imb_factor,
                        download=True,
                        transform=transforms)
 
-test_dataset = Imbalanced_FashionMNIST(root='~/data/',
+test_dataset = Imbalanced_CIFAR10(root='~/data/',
                        train=False,
                        imb_factor=imb_factor,
                        download=True,
                        transform=transforms)
 
 
-sampler = BalancedSampler(train_dataset, retain_epoch_size=False)
+# sampler = BalancedSampler(train_dataset, retain_epoch_size=False)
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(dataset=test_dataset, batch_size=10000, shuffle=False)
 
@@ -151,7 +151,7 @@ with torch.no_grad():
     plt.show()
 
 # Save EAE
-torch.save(eae.state_dict(), SAVE_PATH + f"aea_{eae_num_epoch}.pth")
+torch.save(eae.state_dict(), SAVE_PATH + f"eae_{eae_num_epoch}.pth")
 
 
 # init G model
