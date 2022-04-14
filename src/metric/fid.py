@@ -57,7 +57,7 @@ def stack_gen_data_features(eval_model, gen_model, latent_dim, sample_size, num_
     labels = []
 
     for cls in range(num_class):
-        for _ in range(sample_size/10):
+        for _ in range(sample_size//10):
             noise = torch.randn(sample_size//100, latent_dim).to(device)
             label = (torch.ones(sample_size//100, dtype=torch.long) * cls).to(device)
 
@@ -69,9 +69,11 @@ def stack_gen_data_features(eval_model, gen_model, latent_dim, sample_size, num_
 
             gen_image_feature, gen_image_logit = eval_model(gen_image)
             gen_image_features.append(gen_image_feature.detach().cpu())
-            labels.append(cls)
+            labels.append([cls] *10)
 
     gen_image_features = torch.cat(gen_image_features, 0)
+    labels = np.array(labels).ravel()
+
     return gen_image_features, labels
 
 
@@ -87,6 +89,9 @@ if __name__ == "__main__":
     latent_dim = 128
     batch_size = 64
     imb_factor = 0.01
+    num_class = 10
+    sample_size = 1000
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     cuda0 = torch.device("cuda:0")
     cuda1 = torch.device("cuda:1")
@@ -100,7 +105,7 @@ if __name__ == "__main__":
         Normalize(mean=[0.5], std=[0.5])
     ])
 
-    train_dataset = Imbalanced_FashionMNIST(root='~/data/',
+    train_dataset = Imbalanced_CIFAR10(root='~/data/',
                            train=True,
                            imb_factor=imb_factor,
                            download=True,
@@ -124,11 +129,16 @@ if __name__ == "__main__":
     gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/eae/fashion_mnist/g_30.pth'))
 
     real_image_features, real_labels = stack_real_data_features(eval_model, train_loader, resizer, device)
-    gen_image_features, gen_labels = stack_gen_data_features(eval_model, gen_model, latent_dim, 1000, 10, resizer, device)
+    gen_image_features, gen_labels = stack_gen_data_features(eval_model, gen_model, latent_dim, sample_size, num_class, resizer, device)
 
+
+    for cls in range(num_class):
+        target_image_features = real_image_features[real_labels == cls]
+        target_gen_features = gen_image_features[gen_labels == cls]
+        fid = calculate_fid(target_image_features.numpy(), target_gen_features.numpy())
+        print('>>FID(%d): %.3f' % (cls, fid))
 
     fid = calculate_fid(real_image_features.numpy(), gen_image_features.numpy())
 
-
-    print('>>FID(%d): %.3f' % (c, fid))
+    print('>>FID(all): %.3f' % (fid))
     print('-'*50)

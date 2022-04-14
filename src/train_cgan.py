@@ -258,9 +258,8 @@ for epoch in range(gan_num_epoch):
         print(f"Epoch: {epoch+1}, index: {idx}/{len(train_loader)}, D_loss: {d_loss}, G_loss: {g_loss}")
     plt_img(epoch)
 
-
-torch.save(g.state_dict(), SAVE_PATH + f"g_{eae_num_epoch}.pth")
-torch.save(d.state_dict(), SAVE_PATH + f"d_{eae_num_epoch}.pth")
+    torch.save(g.state_dict(), SAVE_PATH + f"g_{epoch}.pth")
+    torch.save(d.state_dict(), SAVE_PATH + f"d_{epoch}.pth")
 
 # save gif
 import imageio
