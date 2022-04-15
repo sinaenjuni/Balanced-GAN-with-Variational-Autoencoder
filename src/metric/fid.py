@@ -125,8 +125,9 @@ if __name__ == "__main__":
 
 
     eval_model = InceptionV3(resize_input=False, normalize_input=False).to(device).eval()
-    gen_model = Generator(image_size=64, image_channel=1, std_channel=64, latent_dim=128, num_class=10, norm='bn').to(device).eval()
-    gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/eae/fashion_mnist/g_30.pth'))
+    gen_model = Generator(image_size=64, image_channel=3, std_channel=64, latent_dim=128, num_class=10, norm='bn').to(device).eval()
+    # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/eae/fashion_mnist/g_30.pth'))
+    gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/eae/cifar10/g_99.pth'))
 
     real_image_features, real_labels = stack_real_data_features(eval_model, train_loader, resizer, device)
     gen_image_features, gen_labels = stack_gen_data_features(eval_model, gen_model, latent_dim, sample_size, num_class, resizer, device)

@@ -18,17 +18,28 @@ class Encoder_module(nn.Module):
 
         return layer
 
-    def __init__(self, image_size, image_channel, std_channel, latent_dim):
+    def sampling(self, mu, log_var):
+        std = torch.exp(0.5 * log_var)
+        eps = torch.randn_like(std)
+        return eps.mul(std).add_(mu)  # return z sample
+
+    def __init__(self, image_size, image_channel, std_channel, latent_dim, is_vae):
         super(Encoder_module, self).__init__()
 
         self.image_size = image_size // 2 ** 4
         self.channels = [std_channel, std_channel*2, std_channel*4]
+        self.is_vae = is_vae
 
         self.layer1 = self.getLayer(image_channel,    self.channels[0], kernel_size=4, stride=2, padding=1, is_flatten=False)
         self.layer2 = self.getLayer(self.channels[0], self.channels[1], kernel_size=4, stride=2, padding=1, is_flatten=False)
         self.layer3 = self.getLayer(self.channels[1], self.channels[1], kernel_size=4, stride=2, padding=1, is_flatten=False)
         self.feature = self.getLayer(self.channels[1], self.channels[2], kernel_size=4, stride=2, padding=1, is_flatten=True)
-        self.fc_lrelu = nn.Sequential(nn.Linear(self.image_size * self.image_size * self.channels[-1], latent_dim),
+
+        if self.is_vae:
+            self.mu    = nn.Linear(image_size * image_size * std_channel * 4, latent_dim)
+            self.sigma = nn.Linear(image_size * image_size * std_channel * 4, latent_dim)
+        else:
+            self.fc_lrelu = nn.Sequential(nn.Linear(self.image_size * self.image_size * self.channels[-1], latent_dim),
                                           nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
     def forward(self, x):
@@ -37,8 +48,13 @@ class Encoder_module(nn.Module):
         x = self.layer3(x)
         x = self.feature(x)
         # x = torch.flatten(x, start_dim=1)
-        x = self.fc_lrelu(x)
-        return x
+        if self.is_vae:
+            mu = self.mu(x)
+            log_var = self.sigma(x)
+            return self.sampling(mu, log_var), mu, log_var
+        else:
+            x = self.fc_lrelu(x)
+            return x
 
 
 
