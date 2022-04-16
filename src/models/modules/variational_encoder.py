@@ -1,29 +1,13 @@
 import torch
 import torch.nn as nn
+from models.modules.encoder_module import Encoder_module
 
-
-class VariationalEncoder(nn.Module):
-    def getLayer(self, num_input, num_output, kernel_size, stride, padding):
-        return nn.Sequential(nn.Conv2d(in_channels=num_input,
-                                       out_channels=num_output,
-                                       kernel_size=kernel_size,
-                                       stride=stride,
-                                       padding=padding),
-                             nn.LeakyReLU(negative_slope=0.2, inplace=True))
-
+class VariationalEncoder(Encoder_module):
     def __init__(self, image_size, image_channel, std_channel, latent_dim):
-        super(VariationalEncoder, self).__init__()
+        super(VariationalEncoder, self).__init__(image_size=image_size, image_channel=image_channel, std_channel=std_channel, latent_dim=latent_dim)
 
-        image_size = image_size // 2 ** 4
-
-        self.layer1 = self.getLayer(image_channel, std_channel,   kernel_size=4, stride=2, padding=1)
-        self.layer2 = self.getLayer(std_channel,   std_channel*2, kernel_size=4, stride=2, padding=1)
-        self.layer3 = self.getLayer(std_channel*2, std_channel*2, kernel_size=4, stride=2, padding=1)
-        self.layer4 = self.getLayer(std_channel*2, std_channel*4, kernel_size=4, stride=2, padding=1)
-        # self.layer5 = nn.Sequential(nn.Linear(image_size * image_size * std_channel*4, latent_dim),
-        #                                   nn.LeakyReLU(negative_slope=0.2, inplace=True))
-        self.layer5 = nn.Linear(image_size * image_size * std_channel * 4, latent_dim)
-        self.layer5_1 = nn.Linear(image_size * image_size * std_channel * 4, latent_dim)
+        self.mu      = nn.Linear(self.image_size * self.image_size * std_channel * 4, latent_dim)
+        self.log_var = nn.Linear(self.image_size * self.image_size * std_channel * 4, latent_dim)
 
     def sampling(self, mu, log_var):
         std = torch.exp(0.5 * log_var)
@@ -34,11 +18,9 @@ class VariationalEncoder(nn.Module):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        x = self.layer4(x)
-        x = torch.flatten(x, start_dim=1)
-        # x = self.layer5(x)
-        mu = self.layer5(x)
-        log_var = self.layer5_1(x)
+        x = self.feature(x)
+        mu = self.mu(x)
+        log_var = self.log_var(x)
         return self.sampling(mu, log_var), mu, log_var
 
 if __name__ == "__main__":
@@ -55,3 +37,6 @@ if __name__ == "__main__":
     print(mu.size())
     print(log_var.size())
 
+
+    for i in E.named_parameters():
+        print(i[0])
