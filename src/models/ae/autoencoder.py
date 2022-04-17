@@ -26,3 +26,13 @@ if __name__ == "__main__":
     ae = AE(image_size=64, image_channel=3, std_channel=64, latent_dim=128, norm='bn')
     # print(list(ae.encoder.modules()))
     # print(ae.encoder.layer2[0].weight)
+
+    def initialize_weights(m):
+        if isinstance(m, nn.Conv2d):
+            nn.init.normal_(m.weight.data, std=0.02)
+
+    ae.apply(initialize_weights)
+
+    inputs = torch.randn((128, 3, 64, 64))
+    encode = ae(inputs)
+

@@ -61,3 +61,6 @@ if __name__ == "__main__":
     inputs = torch.randn((1, 128))
     outputs = D(inputs)
     print(outputs.size())
+
+    for i in D.named_parameters():
+        print(i[0])

@@ -23,3 +23,23 @@ class VAE(nn.Module):
 
         return decode, mu, log_var
 
+
+if __name__ == "__main__":
+
+    def initialize_weights(m):
+        if isinstance(m, nn.Conv2d):
+            nn.init.normal_(m.weight.data, std=0.02)
+
+    E = VariationalEncoder(image_size=64, image_channel=3, std_channel=64, latent_dim=128)
+    E.apply(initialize_weights)
+
+    inputs = torch.randn((128, 3, 64, 64))
+    encode, mu, log_var = E(inputs)
+
+    print(encode.size())
+    print(mu.size())
+    print(log_var.size())
+
+
+    for i in E.named_parameters():
+        print(i[0])
