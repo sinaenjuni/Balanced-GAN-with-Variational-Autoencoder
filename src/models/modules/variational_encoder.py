@@ -1,13 +1,19 @@
 import torch
 import torch.nn as nn
+from torch.nn.utils import spectral_norm
+
 from models.modules.encoder_module import Encoder_module
 
 class VariationalEncoder(Encoder_module):
-    def __init__(self, image_size, image_channel, std_channel, latent_dim):
-        super(VariationalEncoder, self).__init__(image_size=image_size, image_channel=image_channel, std_channel=std_channel, latent_dim=latent_dim)
+    def __init__(self, image_size, image_channel, std_channel, latent_dim, norm):
+        super(VariationalEncoder, self).__init__(image_size=image_size, image_channel=image_channel, std_channel=std_channel, latent_dim=latent_dim, norm=norm)
 
-        self.mu      = nn.Linear(self.image_size * self.image_size * std_channel * 4, latent_dim)
-        self.log_var = nn.Linear(self.image_size * self.image_size * std_channel * 4, latent_dim)
+        if norm == "sp":
+            self.mu      = spectral_norm(nn.Linear(self.image_size * self.image_size * std_channel * 4, latent_dim))
+            self.log_var = spectral_norm(nn.Linear(self.image_size * self.image_size * std_channel * 4, latent_dim))
+        else:
+            self.mu      = nn.Linear(self.image_size * self.image_size * std_channel * 4, latent_dim)
+            self.log_var = nn.Linear(self.image_size * self.image_size * std_channel * 4, latent_dim)
 
     def sampling(self, mu, log_var):
         std = torch.exp(0.5 * log_var)
@@ -28,7 +34,7 @@ if __name__ == "__main__":
         if isinstance(m, nn.Conv2d):
             nn.init.normal_(m.weight.data, std=0.02)
 
-    VE = VariationalEncoder(image_size=64, image_channel=3, std_channel=64, latent_dim=128)
+    VE = VariationalEncoder(image_size=64, image_channel=3, std_channel=64, latent_dim=128, norm="sp")
     VE.apply(initialize_weights)
 
     inputs = torch.randn((128, 3, 64, 64))

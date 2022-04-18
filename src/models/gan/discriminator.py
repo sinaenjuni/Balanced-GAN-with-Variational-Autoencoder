@@ -3,9 +3,13 @@ import torch.nn as nn
 from models.modules.encoder_module import Encoder_module
 
 class Discriminator(nn.Module):
-    def __init__(self, image_size, image_channel, std_channel, latent_dim, num_class):
+    def __init__(self, image_size, image_channel, std_channel, latent_dim, num_class, norm):
         super(Discriminator, self).__init__()
-        self.encoder = Encoder_module(image_size=image_size, image_channel=image_channel, std_channel=std_channel, latent_dim=latent_dim)
+        self.encoder = Encoder_module(image_size=image_size,
+                                      image_channel=image_channel,
+                                      std_channel=std_channel,
+                                      latent_dim=latent_dim,
+                                      norm=norm)
 
         self.em = nn.Sequential(nn.Embedding(num_class, 512),
                                 nn.Flatten(start_dim=1),
