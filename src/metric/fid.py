@@ -101,8 +101,8 @@ if __name__ == "__main__":
     transforms = Compose([
         Resize(64),
         ToTensor(),
-        # Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-        Normalize(mean=[0.5], std=[0.5])
+        Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        # Normalize(mean=[0.5], std=[0.5])
     ])
 
     train_dataset = Imbalanced_CIFAR10(root='~/data/',

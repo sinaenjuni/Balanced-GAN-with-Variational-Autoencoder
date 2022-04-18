@@ -43,7 +43,7 @@ torch.backends.cudnn.benchmark = False
 
 # Hyper-parameters
 batch_size = 128
-eae_num_epoch = 60
+eae_num_epoch = 30
 gan_num_epoch = 100
 std_channel = 64
 latent_dim = 128
@@ -70,7 +70,6 @@ transforms = Compose([
     ToTensor(),
     Normalize(mean=[0.5], std=[0.5])
 ])
-
 train_dataset = Imbalanced_CIFAR10(root='~/data/',
                        train=True,
                        imb_factor=imb_factor,
@@ -85,6 +84,7 @@ test_dataset = Imbalanced_CIFAR10(root='~/data/',
 
 
 # sampler = BalancedSampler(train_dataset, retain_epoch_size=False)
+# train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=False, sampler=sampler)
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(dataset=test_dataset, batch_size=10000, shuffle=False)
 
@@ -172,8 +172,8 @@ with torch.no_grad():
     plt.imshow(grid.permute(1, 2, 0))
     plt.show()
 
-# Save EAE
-torch.save(evae.state_dict(), SAVE_PATH + f"eae_{eae_num_epoch}.pth")
+# Save AE
+torch.save(evae.state_dict(), SAVE_PATH + f"evae_{eae_num_epoch}.pth")
 
 
 # init G model
@@ -184,11 +184,11 @@ d.load_state_dict(evae.state_dict(), strict=False)
 
 d_optimizer = Adam(d.parameters(),
                  lr=learning_rate,
-                 # weight_decay=1e-5,
+                 weight_decay=1e-5,
                  betas=(beta1, beta2))
 g_optimizer = Adam(g.parameters(),
                  lr=learning_rate,
-                 # weight_decay=1e-5,
+                 weight_decay=1e-5,
                  betas=(beta1, beta2))
 
 def d_loss_function(real_logit, fake_logit, wrong_logit):

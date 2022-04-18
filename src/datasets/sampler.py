@@ -24,9 +24,9 @@ class SelectSampler(Sampler):
 class BalancedSampler(Sampler):
     def __init__(self, dataset, retain_epoch_size=False):
 
-        num_classes = len(np.unique(dataset.train_labels))
+        num_classes = len(np.unique(dataset.targets))
         cls_num_list = [0] * num_classes
-        for label in dataset.train_labels:
+        for label in dataset.targets:
             cls_num_list[label] += 1
 
         buckets = [[] for _ in range(num_classes)]
@@ -43,7 +43,7 @@ class BalancedSampler(Sampler):
 
     def __iter__(self):
         count = self.__len__()
-        print('sampler', count)
+        # print('sampler', count)
         while count > 0:
             yield self._next_item()
             count -= 1
@@ -90,13 +90,13 @@ if __name__ == "__main__":
         Normalize(mean=[0.5], std=[0.5])
     ])
 
-    dataset = Imbalanced_FashionMNIST(root='~/datasets/fashion_mnist/',
+    dataset = Imbalanced_FashionMNIST(root='~/data/',
                                       train=True,
                                       imb_factor=0.01,
                                       download=True,
                                       transform=train_trsfm)
 
-    sampler = BalancedSampler(dataset, retain_epoch_size=False)
+    sampler = BalancedSampler(dataset, retain_epoch_size=True)
     loader = DataLoader(dataset=dataset, sampler=sampler, batch_size=10, shuffle=False)
 
     # print(len(loader))
