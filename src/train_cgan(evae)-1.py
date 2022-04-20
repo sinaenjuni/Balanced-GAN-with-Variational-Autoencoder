@@ -59,7 +59,7 @@ dataset = 'mnist'
 image_size = 64
 image_channel = 1
 
-SAVE_PATH = f'/home/sin/git/ae/src/weights/evae(sampler)/{dataset}/'
+SAVE_PATH = f'/home/sin/git/ae/src/weights/evae/{dataset}/'
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
@@ -84,9 +84,9 @@ test_dataset = Imbalanced_MNIST(root='~/data/',
                        transform=transforms)
 
 
-sampler = BalancedSampler(train_dataset, retain_epoch_size=False)
-train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=False, sampler=sampler)
-# train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+# sampler = BalancedSampler(train_dataset, retain_epoch_size=False)
+# train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=False, sampler=sampler)
+train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(dataset=test_dataset, batch_size=10000, shuffle=False)
 
 fixed_image, fixed_label = iter(test_loader).__next__()

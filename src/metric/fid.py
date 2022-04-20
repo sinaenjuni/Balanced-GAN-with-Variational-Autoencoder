@@ -106,7 +106,7 @@ if __name__ == "__main__":
         Normalize(mean=[0.5], std=[0.5])
     ])
 
-    train_dataset = Imbalanced_MNIST(root='~/data/',
+    train_dataset = Imbalanced_FashionMNIST(root='~/data/',
                            train=True,
                            imb_factor=imb_factor,
                            download=True,
@@ -131,7 +131,8 @@ if __name__ == "__main__":
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/eae/cifar10/g_99.pth'))
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae/cifar10/g_99.pth'))
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/cifar10/g_99.pth'))
-    gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/mnist/g_99.pth'))
+    # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/mnist/g_99.pth'))
+    gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/fashion_mnist/g_99.pth'))
 
     real_image_features, real_labels = stack_real_data_features(eval_model, train_loader, resizer, device)
     gen_image_features, gen_labels = stack_gen_data_features(eval_model, gen_model, latent_dim, sample_size, num_class, resizer, device)
