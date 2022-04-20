@@ -5,17 +5,16 @@ from torch.utils.data import Sampler, DataLoader
 from torchvision.transforms import Compose, ToTensor, Normalize, Resize
 import numpy as np
 import random
+from datasets.sampler import BalancedSampler
 
 
-
-
-class IMBALANCEMNIST(MNIST):
+class Imbalanced_MNIST(MNIST):
     cls_num = 10
 
-    def __init__(self, root, imb_type='exp', imb_factor=0.01, rand_number=0,
+    def __init__(self, root, imb_type='exp', train=True,imb_factor=0.01, rand_number=0,
                  transform=None, target_transform=None,
                  download=False, reverse=False):
-        super(IMBALANCEMNIST, self).__init__(root=root, transform=transform, target_transform=target_transform, download=download, train=True )
+        super(Imbalanced_MNIST, self).__init__(root=root, transform=transform, target_transform=target_transform, download=download, train=train)
         np.random.seed(rand_number)
         img_num_list = self.get_img_num_per_cls(self.cls_num, imb_type, imb_factor, reverse)
         self.gen_imbalanced_data(img_num_list)
@@ -72,39 +71,6 @@ class IMBALANCEMNIST(MNIST):
 
 
 
-class BalancedSampler(Sampler):
-    def __init__(self, buckets, retain_epoch_size=False):
-        for bucket in buckets:
-            random.shuffle(bucket)
-
-        self.bucket_num = len(buckets)
-        self.buckets = buckets
-        self.bucket_pointers = [0 for _ in range(self.bucket_num)]
-        self.retain_epoch_size = retain_epoch_size
-
-    def __iter__(self):
-        count = self.__len__()
-        while count > 0:
-            yield self._next_item()
-            count -= 1
-
-    def _next_item(self):
-        bucket_idx = random.randint(0, self.bucket_num - 1)
-        bucket = self.buckets[bucket_idx]
-        item = bucket[self.bucket_pointers[bucket_idx]]
-        self.bucket_pointers[bucket_idx] += 1
-        if self.bucket_pointers[bucket_idx] == len(bucket):
-            self.bucket_pointers[bucket_idx] = 0
-            random.shuffle(bucket)
-        return item
-
-    def __len__(self):
-        if self.retain_epoch_size:
-            return sum([len(bucket) for bucket in self.buckets])  # AcruQRally we need to upscale to next full batch
-        else:
-            return max([len(bucket) for bucket in self.buckets]) * self.bucket_num  # Ensures every instance has the chance to be visited in an epoch
-
-
 if __name__ == '__main__':
     from PIL import Image
 
@@ -113,16 +79,11 @@ if __name__ == '__main__':
                          ]
                         )
 
-    dataset = IMBALANCEMNIST(root='~/datasets/mnist/', imb_factor=0.01,
-                                   download=True, transform=transform)
+    dataset = Imbalanced_MNIST(root='~/data/', imb_factor=0.01,
+                               download=True, transform=transform)
 
 
-    num_classes = len(np.unique(dataset.train_labels))
-    buckets = [[] for _ in range(num_classes)]
-    for idx, label in enumerate(dataset.train_labels):
-        buckets[label].append(idx)
-
-    balancedSampler = BalancedSampler(buckets, retain_epoch_size=False)
+    balancedSampler = BalancedSampler(dataset, retain_epoch_size=False)
     dataloader = DataLoader(dataset, batch_size=10, sampler=balancedSampler)
 
     count = [0 for _ in range(10)]

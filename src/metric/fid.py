@@ -84,6 +84,7 @@ if __name__ == "__main__":
     from datasets.sampler import BalancedSampler
     from datasets.imbalance_fashion_mnist import Imbalanced_FashionMNIST
     from datasets.imbalance_cifar import Imbalanced_CIFAR10
+    from datasets.imbalance_mnist import Imbalanced_MNIST
     from models.gan.embedded_generator import Generator
 
     latent_dim = 128
@@ -101,11 +102,11 @@ if __name__ == "__main__":
     transforms = Compose([
         Resize(64),
         ToTensor(),
-        Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-        # Normalize(mean=[0.5], std=[0.5])
+        # Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        Normalize(mean=[0.5], std=[0.5])
     ])
 
-    train_dataset = Imbalanced_CIFAR10(root='~/data/',
+    train_dataset = Imbalanced_MNIST(root='~/data/',
                            train=True,
                            imb_factor=imb_factor,
                            download=True,
@@ -125,10 +126,12 @@ if __name__ == "__main__":
 
 
     eval_model = InceptionV3(resize_input=False, normalize_input=False).to(device).eval()
-    gen_model = Generator(image_size=64, image_channel=3, std_channel=64, latent_dim=128, num_class=10, norm='bn').to(device).eval()
+    gen_model = Generator(image_size=64, image_channel=1, std_channel=64, latent_dim=128, num_class=10, norm='bn').to(device).eval()
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/eae/fashion_mnist/g_30.pth'))
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/eae/cifar10/g_99.pth'))
-    gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae/cifar10/g_99.pth'))
+    # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae/cifar10/g_99.pth'))
+    # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/cifar10/g_99.pth'))
+    gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/mnist/g_99.pth'))
 
     real_image_features, real_labels = stack_real_data_features(eval_model, train_loader, resizer, device)
     gen_image_features, gen_labels = stack_gen_data_features(eval_model, gen_model, latent_dim, sample_size, num_class, resizer, device)

@@ -24,13 +24,15 @@ class SelectSampler(Sampler):
 class BalancedSampler(Sampler):
     def __init__(self, dataset, retain_epoch_size=False):
 
-        num_classes = len(np.unique(dataset.targets))
+        targets = dataset.targets
+
+        num_classes = len(np.unique(targets))
         cls_num_list = [0] * num_classes
-        for label in dataset.targets:
+        for label in targets:
             cls_num_list[label] += 1
 
         buckets = [[] for _ in range(num_classes)]
-        for idx, label in enumerate(dataset.targets):
+        for idx, label in enumerate(targets):
             buckets[label].append(idx)
 
         for bucket in buckets:
@@ -96,7 +98,7 @@ if __name__ == "__main__":
                                       download=True,
                                       transform=train_trsfm)
 
-    sampler = BalancedSampler(dataset, retain_epoch_size=True)
+    sampler = BalancedSampler(dataset, retain_epoch_size=False)
     loader = DataLoader(dataset=dataset, sampler=sampler, batch_size=10, shuffle=False)
 
     # print(len(loader))

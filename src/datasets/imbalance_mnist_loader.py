@@ -6,7 +6,7 @@ import os, sys
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Dataset, Sampler
 from PIL import Image
-from datasets.imbalance_mnist import IMBALANCEMNIST
+from datasets.imbalance_mnist import Imbalanced_MNIST
 
 
 class BalancedSampler(Sampler):
@@ -68,7 +68,7 @@ class ImbalanceMNISTDataLoader(DataLoader):
         ])
 
         if training:
-            dataset = IMBALANCEMNIST(data_dir, download=True, transform=train_trsfm, imb_factor=imb_factor)
+            dataset = Imbalanced_MNIST(data_dir, download=True, transform=train_trsfm, imb_factor=imb_factor)
             val_dataset = datasets.MNIST(data_dir, train=False, download=True, transform=test_trsfm)  # test set
         else:
             dataset = datasets.MNIST(data_dir, train=False, download=True, transform=test_trsfm)  # test set

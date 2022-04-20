@@ -18,12 +18,13 @@ from models.modules.weights_initialize_method import initialize_weights
 
 from datasets.imbalance_fashion_mnist import Imbalanced_FashionMNIST
 from datasets.imbalance_cifar import Imbalanced_CIFAR10
+from datasets.imbalance_mnist import Imbalanced_MNIST
 # from torchvision.datasets import FashionMNIST
 from datasets.sampler import BalancedSampler
 
 import matplotlib.pyplot as plt
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 # %% --------------------------------------- Fix Seeds -----------------------------------------------------------------
@@ -54,7 +55,7 @@ train_ratio = 5
 gp_weight = 10
 beta1 = 0.5
 beta2 = 0.9
-dataset = 'fashion_mnist'
+dataset = 'mnist'
 image_size = 64
 image_channel = 1
 
@@ -70,13 +71,13 @@ transforms = Compose([
     ToTensor(),
     Normalize(mean=[0.5], std=[0.5])
 ])
-train_dataset = Imbalanced_FashionMNIST(root='~/data/',
+train_dataset = Imbalanced_MNIST(root='~/data/',
                        train=True,
                        imb_factor=imb_factor,
                        download=True,
                        transform=transforms)
 
-test_dataset = Imbalanced_FashionMNIST(root='~/data/',
+test_dataset = Imbalanced_MNIST(root='~/data/',
                        train=False,
                        imb_factor=imb_factor,
                        download=True,
