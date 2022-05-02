@@ -91,10 +91,10 @@ if __name__ == '__main__':
     transform = transforms.Compose(
         [transforms.ToTensor(),
          transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
-    cifar10 = Imbalanced_CIFAR10(root='~/data/cfiar10/', train=True, imb_factor=0.01,
+    cifar10 = Imbalanced_CIFAR10(root='~/data/', train=True, imb_factor=0.01,
                                  download=True, transform=transform)
     print(len(cifar10))
-    cifar100 = Imbalanced_CIFAR100(root='~/data/cfiar100/', train=True, imb_factor=0.01,
+    cifar100 = Imbalanced_CIFAR100(root='~/data/', train=True, imb_factor=0.01,
                                    download=True, transform=transform)
     print(len(cifar100))
 
