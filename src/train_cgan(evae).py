@@ -16,7 +16,7 @@ from models.gan.embedded_generator import Generator
 from models.ae.embedding_variational_autoencoder import EVAE
 from models.modules.weights_initialize_method import initialize_weights
 
-from datasets.imbalance_fashion_mnist import Imbalanced_FashionMNIST
+# from datasets.imbalance_fashion_mnist import Imbalanced_FashionMNIST
 from datasets.imbalance_cifar import Imbalanced_CIFAR10
 # from torchvision.datasets import FashionMNIST
 from datasets.sampler import BalancedSampler

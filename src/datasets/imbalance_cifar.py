@@ -74,7 +74,7 @@ class Imbalanced_CIFAR100(Imbalanced_CIFAR10):
     tgz_md5 = 'eb9058c3a382ffc7106e4002c42a8d85'
     train_list = [
         ['train', '16019d7e3df5f24257cddd939b257f8d'],
-    ]
+     ]
 
     test_list = [
         ['test', 'f0ef6b0ae62326f3e7ffdfab6717acfc'],
