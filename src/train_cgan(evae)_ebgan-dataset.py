@@ -78,11 +78,15 @@ train_dataset = Dataset(root='~/data/',
                        transform=transforms,
                         imb_type='ebgan')
 
-test_dataset = Dataset(root='~/data/',
-                       train=False,
-                       imb_factor=imb_factor,
-                       download=True,
-                       transform=transforms)
+from torch.utils.data import random_split
+train_dataset, test_dataset = random_split(train_dataset, [6650, 2850], generator=torch.Generator().manual_seed(42))
+
+
+# test_dataset = Dataset(root='~/data/',
+#                        train=False,
+#                        imb_factor=imb_factor,
+#                        download=True,
+#                        transform=transforms)
 
 
 # sampler = BalancedSampler(train_dataset, retain_epoch_size=False)
@@ -101,7 +105,7 @@ fixed_noise_label = torch.tensor([[i//10] for i in range(100)]).to(device)
 # plt.imshow(grid.permute(1, 2, 0))
 # plt.show()
 
-print(np.unique(train_loader.dataset.target))
+print(np.unique(train_loader.dataset.dataset.targets, return_counts=True))
 
 
 evae = EVAE(image_size=image_size,
