@@ -33,6 +33,12 @@ class Imbalanced_CIFAR10(torchvision.datasets.CIFAR10):
                 img_num_per_cls.append(int(img_max))
             for cls_idx in range(cls_num // 2):
                 img_num_per_cls.append(int(img_max * imb_factor))
+        elif imb_type == 'ebgan':
+            for cls_idx in range(cls_num):
+                if cls_idx == 0:
+                    img_num_per_cls.append(int(img_max))
+                else:
+                    img_num_per_cls.append(int(100 * cls_idx))
         else:
             img_num_per_cls.extend([int(img_max)] * cls_num)
         return img_num_per_cls
@@ -92,8 +98,9 @@ if __name__ == '__main__':
         [transforms.ToTensor(),
          transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
     cifar10 = Imbalanced_CIFAR10(root='~/data/', train=True, imb_factor=0.01,
-                                 download=True, transform=transform)
+                                 download=True, transform=transform, imb_type='ebgan')
     print(len(cifar10))
+    print(np.unique(cifar10.targets, return_counts=True))
     cifar100 = Imbalanced_CIFAR100(root='~/data/', train=True, imb_factor=0.01,
                                    download=True, transform=transform)
     print(len(cifar100))

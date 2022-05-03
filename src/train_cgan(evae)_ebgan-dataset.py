@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torchvision.utils import make_grid
 from torchvision.transforms import *
@@ -17,7 +17,7 @@ from models.ae.embedding_variational_autoencoder import EVAE
 from models.modules.weights_initialize_method import initialize_weights
 
 # from datasets.imbalance_fashion_mnist import Imbalanced_FashionMNIST
-from datasets.imbalance_cifar import Imbalanced_CIFAR10
+from datasets.imbalance_cifar import Imbalanced_CIFAR10 as Dataset
 # from torchvision.datasets import FashionMNIST
 from datasets.sampler import BalancedSampler
 
@@ -54,7 +54,7 @@ train_ratio = 5
 gp_weight = 10
 beta1 = 0.5
 beta2 = 0.9
-dataset = 'fashion_mnist'
+dataset = 'ebgan_cifar10'
 image_size = 64
 image_channel = 3
 
@@ -62,34 +62,23 @@ SAVE_PATH = f'/home/sin/git/ae/src/weights/evae/{dataset}/'
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
-
-EBGAN_DATA_IMG_PATH = "/home/sin/git/ae/data/EBGAN_data/images_cifar10.npy"
-EBGAN_DATA_LABEL_PATH = "/home/sin/git/ae/data/EBGAN_data/labels_cifar10.npy"
-
-ebgan_images = np.load(EBGAN_DATA_IMG_PATH)
-ebgan_labels = np.load(EBGAN_DATA_LABEL_PATH)
-ebgan_images = torch.from_numpy(ebgan_images)
-ebgan_labels = torch.from_numpy(ebgan_labels)
-train_dataset = TensorDataset(ebgan_images, ebgan_labels)
-
-
-
-
 transforms = Compose([
     # transforms.RandomCrop(32, padding=4),
     # transforms.RandomHorizontalFlip(),
     # transforms.RandomRotation(15),
     Resize(64),
     ToTensor(),
-    Normalize(mean=[0.5], std=[0.5])
+    # Normalize(mean=[0.5], std=[0.5])
+    Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 ])
-# train_dataset = Imbalanced_FashionMNIST(root='~/data/',
-#                        train=True,
-#                        imb_factor=imb_factor,
-#                        download=True,
-#                        transform=transforms)
-#
-test_dataset = Imbalanced_CIFAR10(root='~/data/',
+train_dataset = Dataset(root='~/data/',
+                       train=True,
+                       imb_factor=imb_factor,
+                       download=True,
+                       transform=transforms,
+                        imb_type='ebgan')
+
+test_dataset = Dataset(root='~/data/',
                        train=False,
                        imb_factor=imb_factor,
                        download=True,
@@ -98,7 +87,6 @@ test_dataset = Imbalanced_CIFAR10(root='~/data/',
 
 # sampler = BalancedSampler(train_dataset, retain_epoch_size=False)
 # train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=False, sampler=sampler)
-# train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(dataset=test_dataset, batch_size=10000, shuffle=False)
 
@@ -112,6 +100,8 @@ fixed_noise_label = torch.tensor([[i//10] for i in range(100)]).to(device)
 # grid = make_grid(fixed_image[target_idx], normalize=True, nrow=10)
 # plt.imshow(grid.permute(1, 2, 0))
 # plt.show()
+
+print(np.unique(train_loader.dataset.target))
 
 
 evae = EVAE(image_size=image_size,
