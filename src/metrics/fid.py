@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import sqrtm
-from metric.inception_net import InceptionV3
+from metrics.inception_net import InceptionV3
 
 
 
@@ -32,7 +32,7 @@ def stack_real_data_features(eval_model, data_loader, resizer, device):
     labels = []
 
     for idx, (real_image, label) in enumerate(data_loader):
-        print(idx)
+        # print(idx)
         real_image = real_image.to(device)
         label = label.to(device)
 
@@ -93,24 +93,25 @@ if __name__ == "__main__":
     num_class = 10
     sample_size = 1000
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    cuda0 = torch.device("cuda:0")
-    cuda1 = torch.device("cuda:1")
+    device = torch.device('cuda' if not torch.cuda.is_available() else 'cpu')
+    # cuda0 = torch.device("cuda:0")
+    # cuda1 = torch.device("cuda:1")
     # device = torch.device('cpu')
     resizer = Resize(299)
 
     transforms = Compose([
         Resize(64),
         ToTensor(),
-        # Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-        Normalize(mean=[0.5], std=[0.5])
+        Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        # Normalize(mean=[0.5], std=[0.5])
     ])
 
-    train_dataset = Imbalanced_FashionMNIST(root='~/data/',
+    train_dataset = Imbalanced_CIFAR10(root='~/data/',
                            train=True,
                            imb_factor=imb_factor,
                            download=True,
-                           transform=transforms)
+                           transform=transforms,
+                                            imb_type='ebgan')
 
     # test_dataset = Imbalanced_CIFAR10(root='~/data/',
     #                        train=False,
@@ -125,15 +126,20 @@ if __name__ == "__main__":
     # fixed_image, fixed_label = iter(train_loader).__next__()
 
 
-    eval_model = InceptionV3(resize_input=False, normalize_input=False).to(device).eval()
-    gen_model = Generator(image_size=64, image_channel=1, std_channel=64, latent_dim=128, num_class=10, norm='bn').to(device).eval()
+    # eval_model = InceptionV3(resize_input=False, normalize_input=False).to(device).eval()
+    eval_model = InceptionV3(resize_input=False, normalize_input=False).to(device)
+    # gen_model = Generator(image_size=64, image_channel=3, std_channel=64, latent_dim=128, num_class=10, norm='bn').to(device).eval()
+    gen_model = Generator(image_size=64, image_channel=3, std_channel=64, latent_dim=128, num_class=10, norm='bn').to(device)
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/eae/fashion_mnist/g_30.pth'))
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/eae/cifar10/g_99.pth'))
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae/cifar10/g_99.pth'))
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/cifar10/g_99.pth'))
     # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/mnist/g_99.pth'))
-    gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/fashion_mnist/g_99.pth'))
+    # gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae(sampler)/fashion_mnist/g_99.pth'))
 
+
+
+    gen_model.load_state_dict(torch.load('/home/sin/git/ae/src/weights/evae/ebgan_cifar10/g_10.pth'))
     real_image_features, real_labels = stack_real_data_features(eval_model, train_loader, resizer, device)
     gen_image_features, gen_labels = stack_gen_data_features(eval_model, gen_model, latent_dim, sample_size, num_class, resizer, device)
 
