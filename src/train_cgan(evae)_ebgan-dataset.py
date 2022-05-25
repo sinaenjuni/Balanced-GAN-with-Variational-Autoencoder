@@ -58,7 +58,7 @@ dataset = 'ebgan_cifar10'
 image_size = 64
 image_channel = 3
 
-SAVE_PATH = f'/home/sin/git/ae/src/weights/evae/{dataset}/'
+SAVE_PATH = f'save_files/evae/{dataset}/'
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
