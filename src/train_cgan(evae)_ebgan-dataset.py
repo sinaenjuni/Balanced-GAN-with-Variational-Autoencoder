@@ -84,7 +84,7 @@ train_dataset = Dataset(root='~/data/',
                         imb_type='ebgan')
 
 from torch.utils.data import random_split
-train_dataset, test_dataset = random_split(train_dataset, [6650, 2850], generator=torch.Generator().manual_seed(42))
+train_dataset, test_dataset = random_split(train_dataset, [6650,  2850], generator=torch.Generator().manual_seed(42))
 
 
 # test_dataset = Dataset(root='~/data/',

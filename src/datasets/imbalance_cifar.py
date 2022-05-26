@@ -14,7 +14,8 @@ class Imbalanced_CIFAR10(torchvision.datasets.CIFAR10):
         super(Imbalanced_CIFAR10, self).__init__(root, train, transform, target_transform, download)
         np.random.seed(rand_number)
         img_num_list = self.get_img_num_per_cls(self.cls_num, imb_type, imb_factor, reverse)
-        self.gen_imbalanced_data(img_num_list)
+        if train:
+            self.gen_imbalanced_data(img_num_list)
         self.reverse = reverse
 
     def get_img_num_per_cls(self, cls_num, imb_type, imb_factor, reverse):
@@ -97,10 +98,18 @@ if __name__ == '__main__':
     transform = transforms.Compose(
         [transforms.ToTensor(),
          transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
-    cifar10 = Imbalanced_CIFAR10(root='~/data/', train=True, imb_factor=0.01,
+    cifar10_train = Imbalanced_CIFAR10(root='~/data/', train=True, imb_factor=0.01,
                                  download=True, transform=transform, imb_type='ebgan')
-    print(len(cifar10))
-    print(np.unique(cifar10.targets, return_counts=True))
+    print(len(cifar10_train))
+    print(np.unique(cifar10_train.targets, return_counts=True))
+
+    cifar10_test = Imbalanced_CIFAR10(root='~/data/', train=False, imb_factor=0.01,
+                                 download=True, transform=transform, imb_type='ebgan')
+    print(len(cifar10_test))
+    print(np.unique(cifar10_test.targets, return_counts=True))
+
+
+
     cifar100 = Imbalanced_CIFAR100(root='~/data/', train=True, imb_factor=0.01,
                                    download=True, transform=transform)
     print(len(cifar100))
