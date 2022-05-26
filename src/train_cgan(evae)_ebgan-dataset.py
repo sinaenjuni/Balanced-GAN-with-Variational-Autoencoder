@@ -58,9 +58,14 @@ dataset = 'ebgan_cifar10'
 image_size = 64
 image_channel = 3
 
-SAVE_PATH = f'save_files/evae/{dataset}/'
-if not os.path.exists(SAVE_PATH):
-    os.makedirs(SAVE_PATH)
+BASE_PATH = f'save_files/evae/{dataset}/'
+IMG_PATH = f'{dataset}/images/'
+WEIGHT_PATH = f'{dataset}/weights/'
+if not os.path.exists(IMG_PATH):
+    os.makedirs(IMG_PATH)
+if not os.path.exists(WEIGHT_PATH):
+    os.makedirs(WEIGHT_PATH)
+
 
 transforms = Compose([
     # transforms.RandomCrop(32, padding=4),
@@ -181,7 +186,7 @@ with torch.no_grad():
     plt.show()
 
 # Save AE
-torch.save(evae.state_dict(), SAVE_PATH + f"evae_{eae_num_epoch}.pth")
+torch.save(evae.state_dict(), WEIGHT_PATH + f"evae_{eae_num_epoch}.pth")
 
 
 # init G model
@@ -243,7 +248,7 @@ def plt_img(epoch):
         grid = make_grid(fixed_vector_output.detach().cpu(), nrow=10, normalize=True)
         plt.axis('off')
         plt.imshow(grid.permute(1, 2, 0))
-        plt.savefig(SAVE_PATH + 'generated_plot_%d.png' % epoch)
+        plt.savefig(IMG_PATH + 'generated_plot_%d.png' % epoch)
         plt.show()
     return
 
@@ -288,15 +293,15 @@ for epoch in range(gan_num_epoch):
         print(f"Epoch: {epoch+1}, index: {idx}/{len(train_loader)}, D_loss: {d_loss}, G_loss: {g_loss}")
     plt_img(epoch)
 
-    torch.save(g.state_dict(), SAVE_PATH + f"g_{epoch}.pth")
-    torch.save(d.state_dict(), SAVE_PATH + f"d_{epoch}.pth")
+    torch.save(g.state_dict(), WEIGHT_PATH + f"g_{epoch}.pth")
+    torch.save(d.state_dict(), WEIGHT_PATH + f"d_{epoch}.pth")
 
 # save gif
 import imageio
 ims = []
 for i in range(gan_num_epoch):
     fname = 'generated_plot_%d.png' % i
-    dir = SAVE_PATH
+    dir = IMG_PATH
     if fname in os.listdir(dir):
         print('loading png...', i)
         im = imageio.imread(dir + fname, 'png')
