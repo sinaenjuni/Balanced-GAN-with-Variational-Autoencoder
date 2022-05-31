@@ -33,6 +33,8 @@ transforms = Compose([
     # Normalize(mean=[0.5], std=[0.5])
     Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 ])
+
+
 test_dataset = Dataset(root='~/data/',
                        train=False,
                        imb_factor=imb_factor,
@@ -40,6 +42,15 @@ test_dataset = Dataset(root='~/data/',
                        transform=transforms,
                         imb_type='ebgan')
 
+li_test_dataset = list(test_dataset)
+
+import numpy as np
+li_test_dataset = np.array(li_test_dataset)
+
+li_test_dataset[0,0].mean()
+tensor(0.4260)
+li_test_dataset[0,0].std()
+tensor(0.1736)
 
 g = Generator(image_size=image_size,
               image_channel=image_channel,
@@ -50,6 +61,7 @@ g = Generator(image_size=image_size,
 
 
 _batch = 1000
+
 noise = torch.randn(_batch, latent_dim).to(device)
 
 
