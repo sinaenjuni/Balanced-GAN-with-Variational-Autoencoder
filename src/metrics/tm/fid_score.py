@@ -88,30 +88,32 @@ def denorm(images):
     # return torch.clamp(images_denorm, min=0, max=1).to(torch.uint8)
 
 G = getGenerator()
-setGenerator(G, 99)
 
 images, labels = getDataOri()
 
-for i in range(10):
-    target = i
-    images_ori = getTargetDataOri(images, labels, target)
+for epoch in range(100):
+    setGenerator(G, epoch)
+    ret = f"{epoch}\t"
+    for i in range(10):
+        target = i
+        images_ori = getTargetDataOri(images, labels, target)
 
-    noise, noise_labels = getNoiseAndLabels(1000, target)
-    images_gen = G(noise, noise_labels)
+        noise, noise_labels = getNoiseAndLabels(1000, target)
+        images_gen = G(noise, noise_labels)
 
-    showImages(make_grid(images_ori))
-    showImages(make_grid(images_gen))
-
-
-    images_ori = denorm(images_ori)
-    images_gen = denorm(images_gen)
-
+        # showImages(make_grid(images_ori))
+        # showImages(make_grid(images_gen))
 
 
-    fid = FrechetInceptionDistance(feature=2048).to(device)
-    fid.update(images_ori, real=True)
-    fid.update(images_gen, real=False)
-    score = fid.compute()
-    print(i, score)
+        images_ori = denorm(images_ori)
+        images_gen = denorm(images_gen)
 
 
+        fid = FrechetInceptionDistance(feature=2048).to(device)
+        fid.update(images_ori, real=True)
+        fid.update(images_gen, real=False)
+        score = fid.compute()
+        # print(i, score)
+        ret += f"{score(i)}\t"
+    ret += "\n"
+    print(ret)
