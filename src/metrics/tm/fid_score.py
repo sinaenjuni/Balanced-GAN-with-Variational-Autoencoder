@@ -59,7 +59,7 @@ def getTargetDataOri(images, labels, idx):
     return images[idx_].to(device)
 
 def showImages(images):
-    grid_image_ori = make_grid(images, normalize=True, nrow=30).permute(1, 2, 0).cpu().numpy()
+    grid_image_ori = make_grid(images, normalize=True, nrow=50).permute(1, 2, 0).cpu().numpy()
     plt.imshow(grid_image_ori)
     plt.show()
 
@@ -90,45 +90,28 @@ def denorm(images):
 G = getGenerator()
 setGenerator(G, 99)
 
-images_ori, labels_ori = getDataOri()
+images, labels = getDataOri()
 
-target = 0
-images_ori = getTargetDataOri(images_ori, labels_ori, target)
+for i in range(10):
+    target = i
+    images_ori = getTargetDataOri(images, labels, target)
 
-noise, noise_labels = getNoiseAndLabels(1000, target)
-images_gen = G(noise, noise_labels)
+    noise, noise_labels = getNoiseAndLabels(1000, target)
+    images_gen = G(noise, noise_labels)
 
-images_ori = denorm(images_ori)
-images_gen = denorm(images_gen)
-
-
-showImages(make_grid(images_ori))
-showImages(make_grid(images_gen))
+    showImages(make_grid(images_ori))
+    showImages(make_grid(images_gen))
 
 
-
+    images_ori = denorm(images_ori)
+    images_gen = denorm(images_gen)
 
 
 
-fid = FrechetInceptionDistance(feature=2048).to(device)
-fid.update(images_ori, real=True)
-fid.update(images_gen, real=False)
-score = fid.compute()
-print(score)
+    fid = FrechetInceptionDistance(feature=2048).to(device)
+    fid.update(images_ori, real=True)
+    fid.update(images_gen, real=False)
+    score = fid.compute()
+    print(i, score)
 
 
-# generate two slightly overlapping image intensity distributions
-imgs_dist1 = torch.randint(0, 200, (100, 3, 64, 64), dtype=torch.uint8)
-imgs_dist2 = torch.randint(100, 255, (100, 3, 64, 64), dtype=torch.uint8)
-fid.update(imgs_dist1, real=True)
-fid.update(imgs_dist2, real=False)
-score = fid.compute()
-print(score)
-
-
-imgs_dist1 = resize299(imgs_dist1)
-imgs_dist2 = resize299(imgs_dist2)
-fid.update(imgs_dist1, real=True)
-fid.update(imgs_dist2, real=False)
-score = fid.compute()
-print(score)
