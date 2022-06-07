@@ -114,6 +114,6 @@ for epoch in range(100):
         fid.update(images_gen, real=False)
         score = fid.compute()
         # print(i, score)
-        ret += f"{score(i)}\t"
+        ret += f"{score}({i})\t"
     ret += "\n"
     print(ret)
