@@ -30,7 +30,7 @@ class Generator_(nn.Module):
 
 
         self.in_layer = MODULES.g_linear(in_features=latent_dim,
-                                       out_feature= self.in_dims[0] * (4 * 4),
+                                       out_features= self.in_dims[0] * (4 * 4),
                                        bias=True)
 
         self.blocks = []
