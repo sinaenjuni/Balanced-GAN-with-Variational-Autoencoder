@@ -1,10 +1,30 @@
 import torch
 import torch.nn as nn
+from torch.nn.utils import spectral_norm
+import opt
+
+class GenBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, MODULE):
+        super(GenBlock, self).__init__()
+
+        self.deconv = MODULE.deconv(in_channels=in_channels,
+                                    out_channels=out_channels,
+                                    kernel_size=4,
+                                    stride=2,
+                                    padding=1)
+        self.bn = MODULE.g_bn(out_channels)
+        self.activation = MODULE.act_fn(inplace=True)
+
+    def forward(self, x):
+        x = self.deconv(x)
+        x = self.bn(x)
+        x = self.activation(x)
+        return x
 
 
-class Decoder_module(nn.Module):
-    def getLayer(self, num_input, num_outout, kernel_size, stride, padding, norm):
-        tconv = nn.ConvTranspose2d(in_channels=num_input,
+class Generator_(nn.Module):
+    def getLayer(self, input_channels, num_outout, kernel_size, stride, padding, norm):
+        tconv = nn.ConvTranspose2d(in_channels=input_channels,
                                        out_channels=num_outout,
                                        kernel_size=kernel_size,
                                        stride=stride,
@@ -22,19 +42,23 @@ class Decoder_module(nn.Module):
         return layer
 
     def __init__(self, image_size, image_channel, std_channel, latent_dim, norm):
-        super(Decoder_module, self).__init__()
+        super(Generator_, self).__init__()
 
         self.image_size = image_size // 2 ** 4
         self.std_channel = std_channel
 
-        self.layer1 = nn.Sequential(nn.Linear(in_features = latent_dim,
+        self.layer1 = nn.Sequential(nn.Linear(in_features=latent_dim,
                                               out_features = self.image_size * self.image_size * std_channel * 4),
                                     nn.LeakyReLU(negative_slope=0.2, inplace=True))  # 2*2*256
 
-        self.layer2 = self.getLayer(std_channel*4, std_channel*2, kernel_size=4, stride=2, padding=1, norm=norm)   # 4*4*128
-        self.layer3 = self.getLayer(std_channel*2, std_channel*2, kernel_size=4, stride=2, padding=1, norm=norm)   # 8*8*128
-        self.layer4 = self.getLayer(std_channel*2, std_channel*1, kernel_size=4, stride=2, padding=1, norm=norm)   # 16*16*64
-        self.layer5 = nn.Sequential(nn.ConvTranspose2d(std_channel*1, image_channel, kernel_size=4, stride=2, padding=1))   # 32*32*3
+        self.layer2 = self.getLayer(std_channel*4, std_channel*2, kernel_size=4, stride=2, padding=1, norm=norm)
+        # 4*4*128
+        self.layer3 = self.getLayer(std_channel*2, std_channel*2, kernel_size=4, stride=2, padding=1, norm=norm)
+        # 8*8*128
+        self.layer4 = self.getLayer(std_channel*2, std_channel*1, kernel_size=4, stride=2, padding=1, norm=norm)
+        # 16*16*64
+        self.layer5 = nn.Sequential(nn.ConvTranspose2d(std_channel*1, image_channel, kernel_size=4, stride=2, padding=1))
+        # 32*32*3
 
     def forward(self, x):
         x = self.layer1(x)
