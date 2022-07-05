@@ -41,7 +41,7 @@ def getDataOri():
         Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
 
-    test_dataset = Dataset(root='~/data/',
+    test_dataset = Dataset(root='/home/dblab/sin/data/',
                            train=False,
                            imb_factor=imb_factor,
                            download=True,

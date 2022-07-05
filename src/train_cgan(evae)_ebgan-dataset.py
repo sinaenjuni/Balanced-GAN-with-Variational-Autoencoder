@@ -296,6 +296,7 @@ for epoch in range(gan_num_epoch):
     torch.save(g.state_dict(), WEIGHT_PATH + f"g_{epoch}.pth")
     torch.save(d.state_dict(), WEIGHT_PATH + f"d_{epoch}.pth")
 
+
 # save gif
 import imageio
 ims = []
