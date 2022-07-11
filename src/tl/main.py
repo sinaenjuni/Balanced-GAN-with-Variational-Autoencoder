@@ -8,6 +8,8 @@ from torchvision.utils import make_grid
 from collections import OrderedDict
 from dataset import DataModule_
 from misc import MODULES
+from torchmetrics.image.fid import FrechetInceptionDistance
+from torchmetrics.image.inception import InceptionScore
 
 
 class MyModel(pl.LightningModule):
@@ -26,7 +28,9 @@ class MyModel(pl.LightningModule):
         self.D = Discriminator_(img_channels=self.hparams.img_channels,
                                 MODULES=self.hparams.MODULES)
 
-
+        # print(self.device)
+        self.fid = FrechetInceptionDistance()
+        # self.ins = InceptionScore()
         # loss
         # self.criterion = nn.CrossEntropyLoss()
         # self.criterion = nn.BCEWithLogitsLoss()
@@ -43,16 +47,16 @@ class MyModel(pl.LightningModule):
     def training_step(self, batch, batch_idx, optimizer_idx):
         imgs, labels = batch
         batch_size = imgs.size(0)
-        z = torch.randn(batch_size, self.hparams.latent_dim)
+        z = torch.randn(batch_size, self.hparams.latent_dim).type_as(imgs)
 
         if optimizer_idx == 0:
             self.gened_imgs = self(z)
 
             sample_imgs = self.gened_imgs[:10]
             grid = make_grid(sample_imgs)
-            # self.logger.experiments.add_image('train_gened_imgs', grid, 0)
+            self.logger.experiment.add_image('train_gened_imgs', grid, 0)
 
-            valid = torch.ones(imgs.size(0))
+            valid = torch.ones(imgs.size(0)).type_as(imgs)
 
             g_loss = self.adversarial_loss(self.D(self.gened_imgs), valid)
 
@@ -61,8 +65,8 @@ class MyModel(pl.LightningModule):
             return output
 
         if optimizer_idx == 1:
-            fake = torch.zeros(imgs.size(0))
-            valid = torch.ones(imgs.size(0))
+            fake = torch.zeros(imgs.size(0)).type_as(imgs)
+            valid = torch.ones(imgs.size(0)).type_as(imgs)
 
             real_loss = self.adversarial_loss(self.D(imgs), valid)
             fake_loss = self.adversarial_loss(self.D(self(z).detach()), fake)
@@ -72,25 +76,37 @@ class MyModel(pl.LightningModule):
             output = OrderedDict({"loss": d_loss, "progress_bar": tqdm_dict, "log": tqdm_dict})
             return output
 
-    # def validation_step(self, batch, batch_idx):
-    #     miRNA_vec, Gene_vec, label = batch
-    #
-    #     logit, _ = self(miRNA_vec, Gene_vec)  # [B, output_vocab_size]
-    #     # loss = self.criterion(logit, label)
-    #
-    #     ## get predicted result
-    #     # prob = F.softmax(logits, dim=-1)
-    #     # acc = FM.accuracy(prob, label.long())
-    #     # auc = FM.auc(prob, label)
-    #     metrics = {'val_logit': logit,
-    #                'val_label': label}
-    #     # self.log_dict(metrics)
-    #     return metrics
-    #
-    # # def validation_step_end(self, metrics):
-    # #     print(metrics["val_loss"].mean())
-    #
-    # def validation_epoch_end(self, val_step_outputs):
+    def validation_step(self, batch, batch_idx):
+        imgs, labels = batch
+        batch_size = imgs.size(0)
+        z = torch.randn(batch_size, self.hparams.latent_dim).type_as(imgs)
+        gend_imgs = self(z)
+
+        imgs      = (((imgs      * 0.5) + 0.5) * 255.).to(torch.uint8)
+        gend_imgs = (((gend_imgs * 0.5) + 0.5) * 255.).to(torch.uint8)
+        # imgs = imgs + 0.5
+        # print(imgs.shape, imgs.min(), imgs.max())
+        # print(gend_imgs.shape, gend_imgs.min(), gend_imgs.max())
+
+
+        self.fid.update(imgs, real=True)
+        self.fid.update(gend_imgs, real=False)
+
+        # self.ins.update(gend_imgs)
+
+        # return metrics
+
+    # def validation_step_end(self, metrics):
+        # print(self.device)
+
+        # print(metrics["val_loss"].mean())
+        # print(self.ins.compute())
+        pass
+
+    def validation_epoch_end(self, val_step_outputs):
+        self.log('valid_fid_epoch',self.fid.compute())
+        self.fid.reset()
+
     #     val_logit = torch.cat([x['val_logit'] for x in val_step_outputs])
     #     val_label = torch.cat([x['val_label'] for x in val_step_outputs])
     #
@@ -121,8 +137,8 @@ class MyModel(pl.LightningModule):
     #     return metrics
 
     def configure_optimizers(self):
-        optimizer_g = Adam(self.parameters(), lr=self.hparams.learning_rate)
-        optimizer_d = Adam(self.parameters(), lr=self.hparams.learning_rate)
+        optimizer_g = Adam(self.G.parameters(), lr=self.hparams.learning_rate)
+        optimizer_d = Adam(self.D.parameters(), lr=self.hparams.learning_rate)
 
         return [optimizer_g, optimizer_d], []
 
@@ -180,12 +196,12 @@ def cli_main():
     # ------------
     # training
     # ------------
-    trainer = pl.Trainer(fast_dev_run=True)
-    # trainer = pl.Trainer(
-    #     max_epochs=100,
-    #     callbacks=[EarlyStopping(monitor='val_loss')],
-        # gpus=4  # if you have gpu -- set number, otherwise zero
-    # )
+    # trainer = pl.Trainer(fast_dev_run=True)
+    trainer = pl.Trainer(
+        max_epochs=100,
+        # callbacks=[EarlyStopping(monitor='val_loss')],
+        gpus=-1  # if you have gpu -- set number, otherwise zero
+    )
     trainer.fit(model, datamodule=dm)
 
     # ------------

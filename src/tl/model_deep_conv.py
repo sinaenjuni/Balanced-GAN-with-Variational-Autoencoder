@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 from torch.nn.utils import spectral_norm
-import tl.misc as misc
-import tl.opt as opt
+import misc as misc
+import opt as opt
 
 class GenBlock(nn.Module):
     def __init__(self, in_channels, out_channels, MODULES):
@@ -151,19 +151,19 @@ if __name__ == "__main__":
     # gen_block = GenBlock(256, 128, misc.MODULES)
     G = Generator_(latent_dim=128,
                    img_channels=3,
-                   MODULES=misc.MODULES)
+                   MODULES=misc.MODULES).cuda()
 
     # G.apply(initialize_weights)
 
-    z = torch.randn((100, 128))
+    z = torch.randn((100, 128)).cuda()
     gened_img = G(z)
     print(z.shape, gened_img.shape)
 
 
     dis_block = DisBlock(3, 64, misc.MODULES)
     print(dis_block)
-    D = Discriminator_(img_channels=3, MODULES=misc.MODULES)
-    real = torch.randn(100, 3, 64, 64)
+    D = Discriminator_(img_channels=3, MODULES=misc.MODULES).cuda()
+    real = torch.randn(100, 3, 64, 64).cuda()
     outputs = D(real)
     print(outputs.shape)
 
