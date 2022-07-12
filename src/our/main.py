@@ -17,7 +17,7 @@ class MyModel(pl.LightningModule):
                  latent_dim,
                  img_channels,
                  MODULES,
-                 learning_rate
+                 learning_rate,
                  ):
         super(MyModel, self).__init__()
         self.save_hyperparameters()
@@ -27,7 +27,6 @@ class MyModel(pl.LightningModule):
                             MODULES=self.hparams.MODULES)
         self.D = Discriminator_(img_channels=self.hparams.img_channels,
                                 MODULES=self.hparams.MODULES)
-
         # print(self.device)
         self.fid = FrechetInceptionDistance()
         # self.ins = InceptionScore()
@@ -76,6 +75,8 @@ class MyModel(pl.LightningModule):
             output = OrderedDict({"loss": d_loss, "progress_bar": tqdm_dict, "log": tqdm_dict})
             return output
 
+
+
     def validation_step(self, batch, batch_idx):
         imgs, labels = batch
         batch_size = imgs.size(0)
@@ -97,16 +98,17 @@ class MyModel(pl.LightningModule):
         # return metrics
 
     # def validation_step_end(self, metrics):
+
+
         # print(self.device)
 
         # print(metrics["val_loss"].mean())
         # print(self.ins.compute())
-        pass
+        # pass
 
     def validation_epoch_end(self, val_step_outputs):
-        self.log('valid_fid_epoch',self.fid.compute())
+        print('valid_fid_epoch', self.fid.compute())
         self.fid.reset()
-
     #     val_logit = torch.cat([x['val_logit'] for x in val_step_outputs])
     #     val_label = torch.cat([x['val_label'] for x in val_step_outputs])
     #
@@ -157,11 +159,13 @@ def cli_main():
     # ------------
     parser = ArgumentParser()
     parser.add_argument('--batch_size', default=200, type=int)
-    parser.add_argument('--latent_dim', default=128, type=int)
+    parser.add_argument('--latent_dim', default=80, type=int)
     parser.add_argument('--img_channels', default=3, type=int)
     parser.add_argument('--path_train', default='/home/dblab/sin/save_files/refer/ebgan_cifar10', type=str)
+    parser.add_argument('--num_workers', default=16, type=int)
+    parser.add_argument('--pin_memory', default=True, type=bool)
     # parser.add_argument('--d_model', default=32, type=int)  # dim. for attention model
-    # parser.add_argument('--n_heads', default=4, type=int)  # number of multi-heads
+    # parser.add_argument('--n_heads', default=4, type=int)  # number of multi-sheads
     # parser.add_argument('--n_split', default=8, type=int)  # number of data seq
     # parser.add_argument('--n_layers', default=8, type=int)  # number of encoder layer
 
@@ -189,7 +193,7 @@ def cli_main():
         # args.d_model,  # dim. in attemtion mechanism
         # args.n_heads,
         # dm.padding_idx,
-        learning_rate=args.learning_rate
+        learning_rate=args.learning_rate,
         # args.n_split
     )
 
@@ -200,7 +204,10 @@ def cli_main():
     trainer = pl.Trainer(
         max_epochs=100,
         # callbacks=[EarlyStopping(monitor='val_loss')],
-        gpus=-1  # if you have gpu -- set number, otherwise zero
+        strategy='ddp',
+        accelerator='gpu',
+        gpus=4,
+        check_val_every_n_epoch=10
     )
     trainer.fit(model, datamodule=dm)
 

@@ -8,6 +8,15 @@ class GenBlock(nn.Module):
     def __init__(self, in_channels, out_channels, MODULES):
         super(GenBlock, self).__init__()
 
+        self.bn1 = MODULES.g_bn(affine_input_dim, in_channels, MODULES)
+        self.bn2 = MODULES.g_bn(affine_input_dim, out_channels, MODULES)
+
+        self.activation = MODULES.g_act_fn
+        self.conv2d0 = MODULES.g_conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=1, stride=1, padding=0)
+        self.conv2d1 = MODULES.g_conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1)
+        self.conv2d2 = MODULES.g_conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1)
+
+
         self.deconv = MODULES.g_deconv(in_channels=in_channels,
                                     out_channels=out_channels,
                                     kernel_size=4,
@@ -26,8 +35,8 @@ class GenBlock(nn.Module):
 class Generator_(nn.Module):
     def __init__(self, latent_dim, img_channels, MODULES):
         super(Generator_, self).__init__()
-        self.in_dims = [256, 256, 128, 64]
-        self.out_dims = [256, 128, 64, 32]
+        self.in_dims = [128, 128, 64, 32]
+        self.out_dims = [128, 64, 32, 16]
         self.img_channels = img_channels
         self.g_init = MODULES.g_init
 
@@ -99,8 +108,8 @@ class DisBlock(nn.Module):
 class Discriminator_(nn.Module):
     def __init__(self, img_channels, MODULES):
         super(Discriminator_, self).__init__()
-        self.in_dims  = [img_channels, 64,  128]
-        self.out_dims = [64,          128, 256]
+        self.in_dims  = [img_channels, 32,  64]
+        self.out_dims = [32,          64, 128]
         self.is_bn = not MODULES.d_sn
         self.d_init = MODULES.d_init
 
