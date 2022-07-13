@@ -57,8 +57,8 @@ class GAN(pl.LightningModule):
     def __init__(self, latent_dim, img_dim, num_class):
         super(GAN, self).__init__()
 
-        path = '/home/dblab/git/VAE-GAN/src/EBGAN/GAN/1gqzkv1e/checkpoints/epoch=28-step=1508.ckpt'
-        weights = torch.load(path)
+        # path = '/home/dblab/git/VAE-GAN/src/EBGAN/GAN/1gqzkv1e/checkpoints/epoch=28-step=1508.ckpt'
+        # weights = torch.load(path)
 
         self.latent_dim = latent_dim
         self.fid = FrechetInceptionDistance()
@@ -66,8 +66,8 @@ class GAN(pl.LightningModule):
         self.G = Generator(img_dim=img_dim, latent_dim=latent_dim, num_class=num_class)
         self.D = Discriminator(img_dim=img_dim, latent_dim=latent_dim, num_class=num_class)
 
-        self.G.load_state_dict(weights['state_dict'], strict=False)
-        self.D.load_state_dict(weights['state_dict'], strict=False)
+        # self.G.load_state_dict(weights['state_dict'], strict=False)
+        # self.D.load_state_dict(weights['state_dict'], strict=False)
 
 
     def forward(self, z, label):
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     # model
 
     wandb.login(key='6afc6fd83ea84bf316238272eb71ef5a18efd445')
-    wandb.init(project='GAN')
+    wandb.init(project='GAN', name='no_pre-train')
 
     wandb_logger = WandbLogger(project="GAN")
     trainer = pl.Trainer(
