@@ -2,23 +2,6 @@ import torch
 import torch.nn as nn
 
 class Decoder(nn.Module):
-    # def getLayer(self, num_input, num_outout, kernel_size, stride, padding, norm):
-    #     tconv = nn.ConvTranspose2d(in_channels=num_input,
-    #                                    out_channels=num_outout,
-    #                                    kernel_size=kernel_size,
-    #                                    stride=stride,
-    #                                    padding=padding)
-    #     if norm == 'bn':
-    #         layer = nn.Sequential(tconv,
-    #                       nn.BatchNorm2d(num_outout),
-    #                       nn.LeakyReLU(negative_slope=0.2, inplace=True))
-    #     elif norm == 'sn':
-    #         layer = nn.Sequential(tconv,
-    #                               nn.LeakyReLU(negative_slope=0.2, inplace=True))
-    #     else:
-    #         layer = nn.Sequential(tconv,
-    #                               nn.LeakyReLU(negative_slope=0.2, inplace=True))
-    #     return layer
 
     def initialize_weights(self):
         for m in self.modules():
@@ -41,18 +24,24 @@ class Decoder(nn.Module):
         self.linear0 = nn.Sequential(nn.Linear(in_features=latent_dim, out_features= self.dims[0] * (4 * 4)),
                                      nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
-        self.deconv0 = nn.Sequential(nn.ConvTranspose2d(in_channels=self.dims[0], out_channels=self.dims[1],
-                                                        kernel_size=4, stride=2, padding=1),
+        self.deconv0 = nn.Sequential(nn.Conv2d(in_channels=self.dims[0], out_channels=self.dims[1],
+                                                        kernel_size=3, stride=1, padding=1),
                                      nn.BatchNorm2d(self.dims[1]),
-                                     nn.LeakyReLU(negative_slope=0.2, inplace=True))
-        self.deconv1 = nn.Sequential(nn.ConvTranspose2d(in_channels=self.dims[1], out_channels=self.dims[2],
-                                                        kernel_size=4, stride=2, padding=1),
+                                     nn.LeakyReLU(negative_slope=0.2, inplace=True),
+                                     nn.Upsample(scale_factor=2, mode='bilinear'))
+
+        self.deconv1 = nn.Sequential(nn.Conv2d(in_channels=self.dims[1], out_channels=self.dims[2],
+                                                        kernel_size=3, stride=1, padding=1),
                                      nn.BatchNorm2d(self.dims[2]),
-                                     nn.LeakyReLU(negative_slope=0.2, inplace=True))
-        self.deconv2 = nn.Sequential(nn.ConvTranspose2d(in_channels=self.dims[2], out_channels=self.dims[3],
-                                                        kernel_size=4, stride=2, padding=1),
+                                     nn.LeakyReLU(negative_slope=0.2, inplace=True),
+                                     nn.Upsample(scale_factor=2, mode='bilinear'))
+
+        self.deconv2 = nn.Sequential(nn.Conv2d(in_channels=self.dims[2], out_channels=self.dims[3],
+                                                        kernel_size=3, stride=1, padding=1),
                                      nn.BatchNorm2d(self.dims[3]),
-                                     nn.LeakyReLU(negative_slope=0.2, inplace=True))
+                                     nn.LeakyReLU(negative_slope=0.2, inplace=True),
+                                     nn.Upsample(scale_factor=2, mode='bilinear'))
+
         self.deconv3 = nn.ConvTranspose2d(in_channels=self.dims[3], out_channels=self.dims[4], kernel_size=4,
                                           stride=2, padding=1)
 

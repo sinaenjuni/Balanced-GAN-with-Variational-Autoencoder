@@ -5,11 +5,11 @@ import pytorch_lightning as pl
 from torch.optim import Adam
 from collections import OrderedDict
 
-from dataset import DataModule_
+from EBGAN.dataset import DataModule_
 from torchvision.utils import make_grid
 import wandb
 from pytorch_lightning.loggers import WandbLogger
-from models import Encoder, Decoder, Embedding_labeled_latent
+from EBGAN.models import Encoder, Decoder, Embedding_labeled_latent
 from torchmetrics.image.fid import FrechetInceptionDistance
 
 
@@ -190,6 +190,9 @@ class GAN(pl.LightningModule):
     def g_loss(self, fake_logits):
         fake_loss = F.binary_cross_entropy_with_logits(fake_logits, torch.ones_like(fake_logits))
         return fake_loss
+
+
+
 
 
 if __name__ == "__main__":
