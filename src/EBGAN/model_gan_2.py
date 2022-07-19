@@ -5,11 +5,11 @@ import pytorch_lightning as pl
 from torch.optim import Adam
 from collections import OrderedDict
 
-from dataset import DataModule_
+from EBGAN.dataset import DataModule_
 from torchvision.utils import make_grid
 import wandb
 from pytorch_lightning.loggers import WandbLogger
-from models import Encoder, Decoder, Embedding_labeled_latent
+from EBGAN.models import Encoder, Decoder, Embedding_labeled_latent
 from torchmetrics.image.fid import FrechetInceptionDistance
 
 
@@ -40,7 +40,6 @@ class Discriminator(nn.Module):
                                        nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
         self.discriminator = nn.Linear(256 * (4*4), 1)
-        # self.head = nn.Linear(256 * (4 * 4), 128)
 
 
     def forward(self, img, label):
@@ -50,9 +49,8 @@ class Discriminator(nn.Module):
         le = self.embedding(label)
 
         out = x * le
-        disc = self.discriminator(out)
-        # head = self.head(out)
-        return disc
+        out = self.discriminator(out)
+        return out
 
 
 class GAN(pl.LightningModule):
@@ -83,19 +81,16 @@ class GAN(pl.LightningModule):
         if optimizer_idx == 0:
             z = torch.randn(batch_size, self.latent_dim).to(self.device)
             fake_labels = (torch.rand((batch_size,)) * 10).to(torch.long).to(self.device)
-            # wrong_labels = (torch.rand((batch_size,)) * 10).to(torch.long).to(self.device)
+            wrong_labels = (torch.rand((batch_size,)) * 10).to(torch.long).to(self.device)
 
             fake_imgs = self(z, real_labels).detach()
             fake_logits = self.D(fake_imgs, fake_labels)
             real_logits = self.D(real_imgs, real_labels)
-            # wrong_logits = self.D(real_imgs, wrong_labels)
-            # d_cost = self.d_loss(real_logits, fake_logits)
-            d_cost = self.d_hinge(real_logits, fake_logits)
-            # head_cost = self.const_loss()
+            wrong_logits = self.D(real_imgs, wrong_labels)
+            d_cost = self.d_loss(real_logits, fake_logits, wrong_logits)
 
-            # gp = self.compute_gradient_penalty(real_imgs, fake_imgs, real_labels)
-            # d_loss = d_cost + gp * 10.0
-            d_loss = d_cost
+            gp = self.compute_gradient_penalty(real_imgs, fake_imgs, real_labels)
+            d_loss = d_cost + gp * 10.0
 
             self.log('d_loss', d_loss, prog_bar=True, logger=True, on_epoch=True)
             return d_loss
@@ -106,8 +101,8 @@ class GAN(pl.LightningModule):
 
             fake_imgs = self(z, fake_labels)
             fake_logits = self.D(fake_imgs, fake_labels)
-            # g_loss = self.g_loss(fake_logits)
-            g_loss = self.g_hinge(fake_logits)
+            g_loss = self.g_loss(fake_logits)
+
             self.log('g_loss', g_loss, prog_bar=True, logger=True, on_epoch=True)
             return g_loss
 
@@ -144,54 +139,20 @@ class GAN(pl.LightningModule):
         optimizer_g = Adam(self.G.parameters(), lr=0.0002, betas=(0.5, 0.9))
         optimizer_d = Adam(self.D.parameters(), lr=0.0002, betas=(0.5, 0.9))
 
-        return [{'optimizer': optimizer_d, 'frequency': 1},
+        return [{'optimizer': optimizer_d, 'frequency': 5},
                 {'optimizer': optimizer_g, 'frequency': 1}]
 
 
     def mes_loss(self, y_hat, y):
         return F.mse_loss(y_hat, y)
 
-    def mySCL(self, features, labels):
-        temperature = 0.07
-        base_temperature = 0.07
 
-        batch_size = features.size(0)
-        label_mask = torch.eq(labels.unsqueeze(0), labels.unsqueeze(0).T).to(torch.int)
-        diag_mask = torch.ones_like(label_mask).fill_diagonal_(0)
-        mask = label_mask.to(torch.bool) * diag_mask.to(torch.bool)
-
-        dot_contrast = torch.div(
-            torch.matmul(features, features.T),
-            temperature)
-
-        logits_max, _ = torch.max(dot_contrast, dim=1, keepdim=True)
-        logits = dot_contrast - logits_max.detach()
-        #     print(logits)
-        exp_logits = torch.exp(logits) * diag_mask
-        #     print(torch.log(exp_logits.sum(1, keepdim=True)))
-        log_prob = logits - torch.log(exp_logits.sum(1, keepdim=True))
-        mean_log_prob_pos = (mask * log_prob).sum(1) / mask.sum(1)
-        #     mean_log_prob_pos.nan_to_num_(1)
-        loss = - (temperature / base_temperature) * mean_log_prob_pos
-        loss = loss.view(batch_size, -1).mean()
-
-        return loss
-
-    def d_hinge(self, d_logit_real, d_logit_fake):
-        return torch.mean(F.relu(1. - d_logit_real)) + torch.mean(F.relu(1. + d_logit_fake))
-
-    def g_hinge(self, d_logit_fake):
-        return -torch.mean(d_logit_fake)
-
-
-    def d_loss(self, real_logits, fake_logits):
-    # def d_loss(self, real_logits, fake_logits, wrong_logits):
+    def d_loss(self, real_logits, fake_logits, wrong_logits):
         real_loss = F.binary_cross_entropy_with_logits(real_logits, torch.ones_like(real_logits))
         fake_loss = F.binary_cross_entropy_with_logits(fake_logits, torch.zeros_like(fake_logits))
-        # wrong_loss = F.binary_cross_entropy_with_logits(wrong_logits, torch.zeros_like(wrong_logits))
+        wrong_loss = F.binary_cross_entropy_with_logits(wrong_logits, torch.zeros_like(wrong_logits))
 
-        return real_loss + fake_loss
-        # return real_loss + fake_loss + wrong_loss
+        return real_loss + fake_loss + wrong_loss
 
 
     def compute_gradient_penalty(self, real_samples, fake_samples, real_labels):
@@ -201,7 +162,7 @@ class GAN(pl.LightningModule):
         """Calculates the gradient penalty loss for WGAN GP"""
         # Random weight term for interpolation between real and fake samples
         # alpha = torch.rand(real_samples.size(0), 1, 1, 1)
-        alpha = torch.rand(real_samples.size(0), 1, 1, 1).to(self.device)
+        alpha = torch.randn(real_samples.size(0), 1, 1, 1).to(self.device)
         # Get random interpolation between real and fake samples
         # interpolates = (alpha * real_samples.data + ((1 - alpha) * fake_samples.data)).requires_grad_(True)
         diff = fake_samples - real_samples
@@ -230,36 +191,11 @@ class GAN(pl.LightningModule):
         fake_loss = F.binary_cross_entropy_with_logits(fake_logits, torch.ones_like(fake_logits))
         return fake_loss
 
-def cli_main():
-    dm = DataModule_(path_train='/home/dblab/sin/save_files/refer/ebgan_cifar10', batch_size=200)
-    model = GAN(latent_dim=128, img_dim=3, num_class=10)
-
-    # model
 
 
-    trainer = pl.Trainer(
-        # fast_dev_run=True,
-        max_epochs=500,
-        # callbacks=[EarlyStopping(monitor='val_loss')],
-        callbacks=[pl.callbacks.ModelCheckpoint(filename="EBGAN-{epoch:02d}-{fid}",
-                                                monitor="fid", mode='min')],
-        logger=wandb_logger,
-        # logger=False,
-        strategy='ddp',
-        accelerator='gpu',
-        gpus=4,
-        check_val_every_n_epoch=10
-    )
-    trainer.fit(model, datamodule=dm)
 
 
 if __name__ == "__main__":
-    wandb.login(key='6afc6fd83ea84bf316238272eb71ef5a18efd445')
-    wandb.init(project='GAN', name='test')
-    wandb_logger = WandbLogger(project="GAN")
-
-    cli_main()
-
     # decoder = Decoder(3, 128)
     # z = torch.randn(100, 128)
     # output = decoder(z)
@@ -275,7 +211,29 @@ if __name__ == "__main__":
     # le = Embedding_labeled_latent(128, 10)
     # output = le(z, label)
 
+    dm = DataModule_(path_train='/home/dblab/sin/save_files/refer/ebgan_cifar10', batch_size=128)
+    model = GAN(latent_dim=128, img_dim=3, num_class=10)
 
+    # model
+
+    # wandb.login(key='6afc6fd83ea84bf316238272eb71ef5a18efd445')
+    wandb.init(project='GAN', name='no-pre-train-4g')
+
+    wandb_logger = WandbLogger(project="GAN")
+    trainer = pl.Trainer(
+        # fast_dev_run=True,
+        max_epochs=500,
+        # callbacks=[EarlyStopping(monitor='val_loss')],
+        callbacks=[pl.callbacks.ModelCheckpoint(filename="EBGAN-{epoch:02d}-{fid}",
+                                                monitor="fid", mode='min')],
+        logger=wandb_logger,
+        # logger=False,
+        strategy='ddp',
+        accelerator='gpu',
+        gpus=[4,5,6,7],
+        check_val_every_n_epoch=10
+    )
+    trainer.fit(model, datamodule=dm)
 
 
     # img = torch.randn(100, 3, 64, 64)
