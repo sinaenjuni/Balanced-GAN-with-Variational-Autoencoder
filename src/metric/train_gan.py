@@ -12,7 +12,9 @@ from pytorch_lightning.loggers import WandbLogger
 from models_t1 import Encoder, Decoder, Embedding_labeled_latent
 from torchmetrics.image.fid import FrechetInceptionDistance
 
-
+wandb.login(key='6afc6fd83ea84bf316238272eb71ef5a18efd445')
+wandb.init(project='GAN', name='spec-GD_bn-G_BCE')
+wandb_logger = WandbLogger(project="GAN")
 
 class Generator(nn.Module):
     def __init__(self, img_dim, latent_dim, num_class):
@@ -88,8 +90,8 @@ class GAN(pl.LightningModule):
             fake_logits = self.D(fake_imgs, fake_labels)
             real_logits = self.D(real_imgs, real_labels)
             # wrong_logits = self.D(real_imgs, wrong_labels)
-            # d_cost = self.d_loss(real_logits, fake_logits)
-            d_cost = self.d_hinge(real_logits, fake_logits)
+            d_cost = self.d_loss(real_logits, fake_logits)
+            # d_cost = self.d_hinge(real_logits, fake_logits)
             # head_cost = self.const_loss()
 
             # gp = self.compute_gradient_penalty(real_imgs, fake_imgs, real_labels)
@@ -105,8 +107,8 @@ class GAN(pl.LightningModule):
 
             fake_imgs = self(z, fake_labels)
             fake_logits = self.D(fake_imgs, fake_labels)
-            # g_loss = self.g_loss(fake_logits)
-            g_loss = self.g_hinge(fake_logits)
+            g_loss = self.g_loss(fake_logits)
+            # g_loss = self.g_hinge(fake_logits)
             self.log('g_loss', g_loss, prog_bar=True, logger=True, on_epoch=True)
             return g_loss
 
@@ -248,16 +250,14 @@ def cli_main():
         # logger=False,
         strategy='ddp',
         accelerator='gpu',
-        gpus=[2,3,4,6],
+        gpus=[2,3],
         check_val_every_n_epoch=10
     )
     trainer.fit(model, datamodule=dm)
 
 
 if __name__ == "__main__":
-    wandb.login(key='6afc6fd83ea84bf316238272eb71ef5a18efd445')
-    wandb.init(project='GAN', name='spec-GD_bn-G_hinge')
-    wandb_logger = WandbLogger(project="GAN")
+
 
     cli_main()
 
