@@ -24,9 +24,9 @@ class MyModel(pl.LightningModule):
         super(MyModel, self).__init__()
         self.save_hyperparameters()
 
-        self.G = Generator(z_dim=self.hparams.latent_dim, img_size=64, g_conv_dim=48, num_classes=10, g_init='ortho', MODULES=MODULES)
+        self.G = Generator(z_dim=self.hparams.latent_dim, img_size=64, g_conv_dim=24, num_classes=10, g_init='ortho', MODULES=MODULES)
 
-        self.D = Discriminator(img_size=64, d_conv_dim=48, d_embed_dim=512, num_classes=10, d_init='ortho', MODULES=MODULES)
+        self.D = Discriminator(img_size=64, d_conv_dim=24, d_embed_dim=256, num_classes=10, d_init='ortho', MODULES=MODULES)
 
         # print(self.device)
         self.fid = FrechetInceptionDistance()
@@ -101,8 +101,9 @@ class MyModel(pl.LightningModule):
         optimizer_d = Adam(self.D.parameters(), lr=self.hparams.learning_rate, betas=(0.5, 0.999))
         optimizer_g = Adam(self.G.parameters(), lr=self.hparams.learning_rate, betas=(0.5, 0.999))
 
-        return [optimizer_d, optimizer_g], []
-
+        # return [optimizer_d, optimizer_g], []
+        return [{'optimizer': optimizer_d, 'frequency': 5},
+                {'optimizer': optimizer_g, 'frequency': 1}]
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = parent_parser.add_argument_group("ATTENTION")
