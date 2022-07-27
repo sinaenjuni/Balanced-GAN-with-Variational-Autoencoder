@@ -24,9 +24,9 @@ class MyModel(pl.LightningModule):
         super(MyModel, self).__init__()
         self.save_hyperparameters()
 
-        self.G = Generator(z_dim=self.hparams.latent_dim, img_size=32, g_conv_dim=96, num_classes=10, g_init='ortho', MODULES=MODULES)
+        self.G = Generator(z_dim=self.hparams.latent_dim, img_size=64, g_conv_dim=48, num_classes=10, g_init='ortho', MODULES=MODULES)
 
-        self.D = Discriminator(img_size=32, d_conv_dim=96, d_embed_dim=512, num_classes=10, d_init='ortho', MODULES=MODULES)
+        self.D = Discriminator(img_size=64, d_conv_dim=48, d_embed_dim=512, num_classes=10, d_init='ortho', MODULES=MODULES)
 
         # print(self.device)
         self.fid = FrechetInceptionDistance()
@@ -90,10 +90,10 @@ class MyModel(pl.LightningModule):
         self.log('fid', self.fid.compute(), logger=True, prog_bar=True, on_epoch=True)
         self.fid.reset()
 
-        z = torch.randn((100, self.hparams.latent_dim)).to(self.device)
-        label = torch.arange(0, 10, dtype=torch.long).repeat(10).to(self.device)
-        gened_imgs = self(z, label)
-        self.logger.log_image("img", [gened_imgs], self.trainer.current_epoch)
+        # z = torch.randn((100, self.hparams.latent_dim)).to(self.device)
+        # label = torch.arange(0, 10, dtype=torch.long).repeat(10).to(self.device)
+        # gened_imgs = self(z, label)
+        # self.logger.log_image("img", [gened_imgs], self.trainer.current_epoch)
 
 
     def configure_optimizers(self):
@@ -159,17 +159,17 @@ def cli_main():
     # ------------
     # training
     # ------------
-    wandb.login(key='6afc6fd83ea84bf316238272eb71ef5a18efd445')
-    wandb.init(project='GAN', name='our_adv')
-    wandb_logger = WandbLogger(project="GAN")
+    # wandb.login(key='6afc6fd83ea84bf316238272eb71ef5a18efd445')
+    # wandb.init(project='GAN', name='our_adv')
+    # wandb_logger = WandbLogger(project="GAN")
 
     trainer = pl.Trainer(
         # fast_dev_run=True,
         max_epochs=500,
         callbacks=[pl.callbacks.ModelCheckpoint(filename="our-{epoch:02d}-{fid}",
                                                 monitor="fid", mode='min')],
-        logger=wandb_logger,
-        # logger=False,
+        # logger=wandb_logger,
+        logger=False,
         strategy='ddp',
         accelerator='gpu',
         gpus=[1,2],

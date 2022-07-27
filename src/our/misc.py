@@ -1,7 +1,7 @@
 import audioop
 
 import torch.nn as nn
-import our.opt as opt
+import opt as opt
 
 class make_empty_object(object):
     pass
