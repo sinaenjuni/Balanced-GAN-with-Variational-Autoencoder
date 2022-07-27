@@ -142,8 +142,8 @@ class GAN(pl.LightningModule):
 
 
     def configure_optimizers(self):
-        optimizer_g = Adam(self.G.parameters(), lr=0.0002, betas=(0.5, 0.9))
-        optimizer_d = Adam(self.D.parameters(), lr=0.0002, betas=(0.5, 0.9))
+        optimizer_g = Adam(self.G.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        optimizer_d = Adam(self.D.parameters(), lr=0.0002, betas=(0.5, 0.999))
 
         return [{'optimizer': optimizer_d, 'frequency': 1},
                 {'optimizer': optimizer_g, 'frequency': 1}]
