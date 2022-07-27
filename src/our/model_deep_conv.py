@@ -96,6 +96,7 @@ class DisBlock(nn.Module):
         return x
 
 
+
 class Discriminator_(nn.Module):
     def __init__(self, img_channels, MODULES):
         super(Discriminator_, self).__init__()

@@ -4,8 +4,9 @@ from torch.nn.utils import spectral_norm
 import misc as misc
 import opt as opt
 
+
 class GenBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, MODULES):
+    def __init__(self, in_channels, out_channels, affine_input_dim, MODULES):
         super(GenBlock, self).__init__()
 
         self.bn1 = MODULES.g_bn(affine_input_dim, in_channels, MODULES)
