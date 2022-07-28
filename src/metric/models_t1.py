@@ -4,21 +4,6 @@ import torch.nn.functional as F
 from torch.nn.utils import spectral_norm
 
 
-class ConditionalBatchNorm2d(nn.Module):
-    # https://github.com/voletiv/self-attention-GAN-pytorch
-    def __init__(self, num_classes, out_features):
-        super().__init__()
-        self.bn = nn.BatchNorm2d(out_features, eps=1e-4, momentum=0.1, affine=False, track_running_stats=True)
-
-        self.gain = spectral_norm(nn.Linear(in_features=num_classes, out_features=out_features, bias=False), eps=1e-6)
-        self.bias = spectral_norm(nn.Linear(in_features=num_classes, out_features=out_features, bias=False), eps=1e-6)
-
-    def forward(self, x, y):
-        gain = (1 + self.gain(y)).view(y.size(0), -1, 1, 1)
-        bias = self.bias(y).view(y.size(0), -1, 1, 1)
-        out = self.bn(x)
-        return out * gain + bias
-
 
 class Decoder(nn.Module):
     def initialize_weights(self):
@@ -35,12 +20,12 @@ class Decoder(nn.Module):
                 # nn.init.constant_(m.bias, 0)
 
 
-    def __init__(self, img_dim, latent_dim, num_classes):
+    def __init__(self, img_dim, latent_dim, num_classes, MODULE):
         super(Decoder, self).__init__()
         self.dims = [256, 128, 128, 64, img_dim]
 
-        self.linear0 = nn.Sequential(spectral_norm(nn.Linear(in_features=latent_dim, out_features= self.dims[0] * (4 * 4))),
-                                     ConditionalBatchNorm2d(num_classes=num_classes, out_features=self.dims[0] * (4 * 4)),
+        self.linear0 = nn.Sequential(MODULE.g_conv2d(in_features=latent_dim, out_features= self.dims[0] * (4 * 4))),
+                                     MODULE.g_bn(in_features=num_classes, out_features=self.dims[0] * (4 * 4)),
                                      nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
         self.deconv0 = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),
