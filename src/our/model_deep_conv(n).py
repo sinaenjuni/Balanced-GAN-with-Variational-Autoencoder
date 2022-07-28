@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.nn.utils import spectral_norm
-import opt
+
 
 class GenBlock(nn.Module):
     def __init__(self, in_channels, out_channels, MODULE):

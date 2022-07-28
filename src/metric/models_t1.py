@@ -4,6 +4,22 @@ import torch.nn.functional as F
 from torch.nn.utils import spectral_norm
 
 
+class ConditionalBatchNorm2d(nn.Module):
+    # https://github.com/voletiv/self-attention-GAN-pytorch
+    def __init__(self, num_classes, out_features):
+        super().__init__()
+        self.bn = nn.BatchNorm2d(out_features, eps=1e-4, momentum=0.1, affine=False, track_running_stats=True)
+
+        self.gain = spectral_norm(nn.Linear(in_features=num_classes, out_features=out_features, bias=False), eps=1e-6)
+        self.bias = spectral_norm(nn.Linear(in_features=num_classes, out_features=out_features, bias=False), eps=1e-6)
+
+    def forward(self, x, y):
+        gain = (1 + self.gain(y)).view(y.size(0), -1, 1, 1)
+        bias = self.bias(y).view(y.size(0), -1, 1, 1)
+        out = self.bn(x)
+        return out * gain + bias
+
+
 class Decoder(nn.Module):
     def initialize_weights(self):
         for m in self.modules():
@@ -19,29 +35,30 @@ class Decoder(nn.Module):
                 # nn.init.constant_(m.bias, 0)
 
 
-    def __init__(self, img_dim, latent_dim):
+    def __init__(self, img_dim, latent_dim, num_classes):
         super(Decoder, self).__init__()
         self.dims = [256, 128, 128, 64, img_dim]
 
         self.linear0 = nn.Sequential(spectral_norm(nn.Linear(in_features=latent_dim, out_features= self.dims[0] * (4 * 4))),
+                                     ConditionalBatchNorm2d(num_classes=num_classes, out_features=self.dims[0] * (4 * 4)),
                                      nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
         self.deconv0 = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),
                                      spectral_norm(nn.Conv2d(in_channels=self.dims[0], out_channels=self.dims[1],
                                                         kernel_size=3, stride=1, padding=1)),
-                                     nn.BatchNorm2d(self.dims[1]),
+                                     ConditionalBatchNorm2d(num_classes=num_classes, out_features=self.dims[1]),
                                      nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
         self.deconv1 = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),
                                      spectral_norm(nn.Conv2d(in_channels=self.dims[1], out_channels=self.dims[2],
                                                         kernel_size=3, stride=1, padding=1)),
-                                     nn.BatchNorm2d(self.dims[2]),
+                                     ConditionalBatchNorm2d(num_classes=num_classes, out_features=self.dims[2]),
                                      nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
         self.deconv2 = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),
                                      spectral_norm(nn.Conv2d(in_channels=self.dims[2], out_channels=self.dims[3],
                                                         kernel_size=3, stride=1, padding=1)),
-                                     nn.BatchNorm2d(self.dims[3]),
+                                     ConditionalBatchNorm2d(num_classes=num_classes, out_features=self.dims[3]),
                                      nn.LeakyReLU(negative_slope=0.2, inplace=True))
 
         self.deconv3 = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),
@@ -49,6 +66,7 @@ class Decoder(nn.Module):
                                                              kernel_size=3, stride=1, padding=1)))
 
         self.tanh = nn.Tanh()
+
         self.initialize_weights()
 
     def forward(self, x):
@@ -129,7 +147,7 @@ class Embedding_labeled_latent(nn.Module):
 if __name__ == '__main__':
 
 
-    encoder = Encoder(3, 128)
+    encoder = Encoder(3, 128, 10)
     decoder = Decoder(3, 128)
 
     z = torch.randn(100, 128)

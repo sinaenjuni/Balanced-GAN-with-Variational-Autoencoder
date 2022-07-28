@@ -44,7 +44,6 @@ class Discriminator(nn.Module):
         self.discriminator = nn.Linear(256 * (4*4), 1)
         # self.head = nn.Linear(256 * (4 * 4), 128)
 
-
     def forward(self, img, label):
         x = self.encoder.getFeatures(img)
         x = torch.flatten(x, 1)
@@ -145,7 +144,7 @@ class GAN(pl.LightningModule):
         optimizer_g = Adam(self.G.parameters(), lr=0.0002, betas=(0.5, 0.999))
         optimizer_d = Adam(self.D.parameters(), lr=0.0002, betas=(0.5, 0.999))
 
-        return [{'optimizer': optimizer_d, 'frequency': 1},
+        return [{'optimizer': optimizer_d, 'frequency': 5},
                 {'optimizer': optimizer_g, 'frequency': 1}]
 
 

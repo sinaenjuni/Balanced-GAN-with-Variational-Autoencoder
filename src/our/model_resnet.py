@@ -8,8 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import opt as opt
-import misc as misc
+from sr import opt as opt, misc as misc
 
 
 class GenBlock(nn.Module):

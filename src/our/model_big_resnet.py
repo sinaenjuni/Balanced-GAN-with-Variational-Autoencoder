@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.nn.utils import spectral_norm
-import misc as misc
-import opt as opt
+from sr import opt as opt, misc as misc
 
 
 class GenBlock(nn.Module):

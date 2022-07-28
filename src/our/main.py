@@ -4,14 +4,9 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 from argparse import ArgumentParser
 from model_resnet import Generator, Discriminator
-from torchvision.utils import make_grid
-from collections import OrderedDict
 from dataset import DataModule_
-from misc import MODULES
+from sr.misc import MODULES
 from torchmetrics.image.fid import FrechetInceptionDistance
-from torchmetrics.image.inception import InceptionScore
-import wandb
-from pytorch_lightning.loggers import WandbLogger
 
 
 class MyModel(pl.LightningModule):
