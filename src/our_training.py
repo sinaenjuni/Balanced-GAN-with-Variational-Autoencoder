@@ -166,7 +166,7 @@ def cli_main():
         strategy='ddp',
         accelerator='gpu',
         gpus=[0],
-        # check_val_every_n_epoch=10
+        check_val_every_n_epoch=10
     )
     trainer.fit(model, datamodule=dm)
 
