@@ -152,6 +152,7 @@ def cli_main():
     # ------------
     wandb.login(key='6afc6fd83ea84bf316238272eb71ef5a18efd445')
     # wandb.init(project='GAN', name='our_adv_bce')
+    wandb.finish()
     wandb.init(project='GAN')
     wandb_logger = WandbLogger(project="GAN")
 
@@ -164,8 +165,8 @@ def cli_main():
         # logger=False,
         strategy='ddp',
         accelerator='gpu',
-        gpus=[0, 1],
-        check_val_every_n_epoch=10
+        gpus=[0],
+        # check_val_every_n_epoch=10
     )
     trainer.fit(model, datamodule=dm)
 
