@@ -91,18 +91,18 @@ class Generator(nn.Module):
         opt.init_weights(self.modules, g_init)
 
     def forward(self, z, label):
-        affine_list = []
-        label = F.one_hot(label, num_classes=self.num_classes).to(torch.float32)
+        # affine_list = []
+        label = F.one_hot(label, num_classes=self.num_classes).to(torch.float)
 
-        affine_list.append(label)
-        affines = torch.cat(affine_list, 1)
+        # affine_list.append(label)
+        # affines = torch.cat(affine_list, 1)
 
         act = self.linear0(z)
         act = act.view(-1, self.in_dims[0], self.bottom, self.bottom)
 
         for index, blocklist in enumerate(self.blocks):
             for block in blocklist:
-                act = block(act, affines)
+                act = block(act, label)
 
         act = self.bn4(act)
         act = self.activation(act)
@@ -250,15 +250,14 @@ class Discriminator(nn.Module):
         h = torch.sum(h, dim=[2, 3])
 
         # adversarial training
-        adv_output = torch.squeeze(self.linear1(h))
-
+        adv = torch.squeeze(self.linear1(h))
 
         featrue = self.linear2(h)
         embed = self.embedding(label)
         featrue = F.normalize(featrue, dim=1)
         embed = F.normalize(embed, dim=1)
 
-        return adv_output, featrue, embed
+        return adv, featrue, embed
 
         # return {
         #     "h": h,
@@ -270,8 +269,8 @@ class Discriminator(nn.Module):
 
 
 if __name__ == '__main__':
-    D = Discriminator(img_size=32, d_conv_dim=96, d_embed_dim=512, num_classes=10, d_init='ortho', MODULES=misc.MODULES)
+    D = Discriminator(img_size=64, d_conv_dim=96, d_embed_dim=512, num_classes=10, d_init='ortho', MODULES=misc.MODULES)
 
-    img = torch.randn(10, 3, 32, 32)
+    img = torch.randn(10, 3, 64, 64)
     output = D(img, label)
     output

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils import spectral_norm
-
+import sr.opt as opt
 
 
 class Decoder(nn.Module):
@@ -19,42 +19,37 @@ class Decoder(nn.Module):
                 nn.init.normal_(m.weight, std=0.02)
                 # nn.init.constant_(m.bias, 0)
 
-
-    def __init__(self, img_dim, latent_dim, num_classes, MODULE):
+    def __init__(self, img_dim, latent_dim, num_classes):
         super(Decoder, self).__init__()
         self.dims = [256, 128, 128, 64, img_dim]
 
-        self.linear0 = nn.Sequential(MODULE.g_conv2d(in_features=latent_dim, out_features= self.dims[0] * (4 * 4))),
-                                     MODULE.g_bn(in_features=num_classes, out_features=self.dims[0] * (4 * 4)),
-                                     nn.LeakyReLU(negative_slope=0.2, inplace=True))
+        self.linear0 = nn.Sequential(opt.snlinear(in_features=latent_dim, out_features= self.dims[0] * (4 * 4)),
+                                     opt.ConditionalBatchNorm2d(in_features=num_classes, out_features=self.dims[0] * (4 * 4)),
+                                     nn.ReLU(inplace=True))
 
         self.deconv0 = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),
-                                     spectral_norm(nn.Conv2d(in_channels=self.dims[0], out_channels=self.dims[1],
-                                                        kernel_size=3, stride=1, padding=1)),
-                                     ConditionalBatchNorm2d(num_classes=num_classes, out_features=self.dims[1]),
-                                     nn.LeakyReLU(negative_slope=0.2, inplace=True))
+                                     opt.snconv2d(in_channels=self.dims[0], out_channels=self.dims[1], kernel_size=3, stride=1, padding=1),
+                                     opt.ConditionalBatchNorm2d(in_features=num_classes, out_features=self.dims[1]),
+                                     nn.ReLU(inplace=True))
 
         self.deconv1 = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),
-                                     spectral_norm(nn.Conv2d(in_channels=self.dims[1], out_channels=self.dims[2],
-                                                        kernel_size=3, stride=1, padding=1)),
-                                     ConditionalBatchNorm2d(num_classes=num_classes, out_features=self.dims[2]),
-                                     nn.LeakyReLU(negative_slope=0.2, inplace=True))
+                                     opt.snconv2d(in_channels=self.dims[1], out_channels=self.dims[2], kernel_size=3, stride=1, padding=1),
+                                     opt.ConditionalBatchNorm2d(in_features=num_classes, out_features=self.dims[2]),
+                                     nn.ReLU(inplace=True))
 
         self.deconv2 = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),
-                                     spectral_norm(nn.Conv2d(in_channels=self.dims[2], out_channels=self.dims[3],
-                                                        kernel_size=3, stride=1, padding=1)),
-                                     ConditionalBatchNorm2d(num_classes=num_classes, out_features=self.dims[3]),
-                                     nn.LeakyReLU(negative_slope=0.2, inplace=True))
+                                     opt.snconv2d(in_channels=self.dims[2], out_channels=self.dims[3], kernel_size=3, stride=1, padding=1),
+                                     opt.ConditionalBatchNorm2d(in_features=num_classes, out_features=self.dims[3]),
+                                     nn.ReLU(inplace=True))
 
         self.deconv3 = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),
-                                     spectral_norm(nn.Conv2d(in_channels=self.dims[3], out_channels=self.dims[4],
-                                                             kernel_size=3, stride=1, padding=1)))
+                                     opt.snconv2d(in_channels=self.dims[3], out_channels=self.dims[4], kernel_size=3, stride=1, padding=1))
 
         self.tanh = nn.Tanh()
 
         self.initialize_weights()
 
-    def forward(self, x):
+    def forward(self, x, one_hot):
         x = self.linear0(x)
         x = x.view(-1, self.dims[0], 4, 4)
         x = self.deconv0(x)
@@ -130,13 +125,17 @@ class Embedding_labeled_latent(nn.Module):
 
 
 if __name__ == '__main__':
+    batch_size = 100
+    num_classes = 10
+    img = torch.randn(batch_size, 3, 64, 64)
+    z = torch.randn(batch_size, 128)
+    label = torch.randint(0, 10, (batch_size,))
+    one_hot = F.one_hot(label).to(torch.float)
 
-
-    encoder = Encoder(3, 128, 10)
+    encoder = Encoder(3, 128, num_classes)
     decoder = Decoder(3, 128)
 
-    z = torch.randn(100, 128)
-    output_decoder = decoder(z)
+    output_decoder = decoder(z, one_hot)
     print(output_decoder.size())
 
 

@@ -43,6 +43,6 @@ if __name__ == "__main__":
     batch = iter(dm.train_dataloader()).next()
     img, label = batch
     print(img.shape, label.shape, img.min(), img.max())
-
+    print(label)
     print(dm.train_dataloader())
     print(dm.val_dataloader())
