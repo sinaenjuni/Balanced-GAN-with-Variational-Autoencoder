@@ -32,7 +32,7 @@ class MyModel(pl.LightningModule):
 
         self.fid = FrechetInceptionDistance()
         # self.ins = InceptionScore()
-        # self.metric_loss = losses.ContraGAN_loss()
+        self.metric_loss = losses.ContraGAN_loss()
 
     def forward(self, z, labels):
         return self.G(z, labels)
@@ -49,19 +49,19 @@ class MyModel(pl.LightningModule):
             f_logit, f_feature, fake_embed = self.D(self(z, labels).detach(), labels)
             # d_loss = self.d_hinge(r_logit, f_logit)
             d_loss = losses.d_bce_loss(r_logit, f_logit)
-            # dm_loss = self.metric_loss(r_feature, real_embed, labels)
+            dm_loss = self.metric_loss(r_feature, real_embed, labels)
             self.log('d_loss', d_loss, prog_bar=True, logger=True, on_epoch=True)
-            # self.log('dm_loss', dm_loss, prog_bar=True, logger=True, on_epoch=True)
-            return d_loss
+            self.log('dm_loss', dm_loss, prog_bar=True, logger=True, on_epoch=True)
+            return d_loss + dm_loss
 
         if optimizer_idx == 1:
             g_logit, g_feature, g_embed = self.D(self(z, fake_labels), fake_labels)
             # g_loss = self.g_hinge(g_logit)
             g_loss = losses.g_bce_loss(g_logit)
-            # gm_loss = self.metric_loss(g_feature, g_embed)
+            gm_loss = self.metric_loss(g_feature, g_embed, fake_labels)
             self.log('g_loss', g_loss, prog_bar=True, logger=True, on_epoch=True)
-            # self.log('gm_loss', gm_loss, prog_bar=True, logger=True, on_epoch=True)
-            return g_loss
+            self.log('gm_loss', gm_loss, prog_bar=True, logger=True, on_epoch=True)
+            return g_loss + gm_loss
 
 
     def validation_step(self, batch, batch_idx):
@@ -154,7 +154,7 @@ def cli_main():
     # wandb.init(project='GAN', name='our_adv_bce')
     wandb.finish()
     wandb.init(project='GAN')
-    wandb_logger = WandbLogger(project="GAN")
+    wandb_logger = WandbLogger(project="GAN", name='contraGAN_loss_test')
 
     trainer = pl.Trainer(
         # fast_dev_run=True,
@@ -165,7 +165,7 @@ def cli_main():
         # logger=False,
         strategy='ddp',
         accelerator='gpu',
-        gpus=[0],
+        gpus=[3],
         check_val_every_n_epoch=10
     )
     trainer.fit(model, datamodule=dm)
