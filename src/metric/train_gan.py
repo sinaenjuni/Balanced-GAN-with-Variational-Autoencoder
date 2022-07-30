@@ -249,7 +249,7 @@ def cli_main():
         # logger=False,
         strategy='ddp',
         accelerator='gpu',
-        gpus=[2,3],
+        gpus=1,
         check_val_every_n_epoch=10
     )
     trainer.fit(model, datamodule=dm)
