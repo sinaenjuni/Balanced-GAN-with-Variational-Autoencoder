@@ -7,7 +7,7 @@ class Our_loss(nn.Module):
     def __init__(self):
         super().__init__()
         self.sim_fn = nn.CosineSimilarity(dim=-1)
-        self.temp = 0.04
+        self.temp = 1
 
     def _calculate_similarity_matrix(self, v1, v2):
         return self.sim_fn(v1.unsqueeze(1), v2.unsqueeze(0))
