@@ -32,7 +32,7 @@ class MyModel(pl.LightningModule):
 
         self.fid = FrechetInceptionDistance()
         # self.ins = InceptionScore()
-        self.metric_loss = losses.Our_loss()
+        self.metric_loss = losses.ContraGAN_loss()
 
     def forward(self, z, labels):
         return self.G(z, labels)
