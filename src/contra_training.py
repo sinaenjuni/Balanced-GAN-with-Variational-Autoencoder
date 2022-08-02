@@ -32,7 +32,7 @@ class MyModel(pl.LightningModule):
 
         self.fid = FrechetInceptionDistance()
         # self.ins = InceptionScore()
-        self.metric_loss = losses.Our_loss(temperature=0.07)
+        self.metric_loss = losses.ContraGAN_loss(temperature=0.07)
         self.best_fid = float('inf')
 
     def forward(self, z, labels):
@@ -159,7 +159,7 @@ def cli_main():
     # wandb.init(project='GAN', name='our_adv_bce')
     # wandb.init(project='GAN', name='contraGAN_loss_test')
     # wandb.init(project='GAN')
-    wandb_logger = WandbLogger(project="GAN", name="our_loss")
+    wandb_logger = WandbLogger(project="GAN", name="contra_loss")
 
     trainer = pl.Trainer(
         # fast_dev_run=True,

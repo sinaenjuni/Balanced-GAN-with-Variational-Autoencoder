@@ -4,10 +4,10 @@ import torch.nn.functional as F
 
 
 class Our_loss(nn.Module):
-    def __init__(self):
+    def __init__(self, temperature=1):
         super().__init__()
         self.sim_fn = nn.CosineSimilarity(dim=-1)
-        self.temp = 1
+        self.temperature = temperature
 
     def _calculate_similarity_matrix(self, v1, v2):
         return self.sim_fn(v1.unsqueeze(1), v2.unsqueeze(0))
@@ -25,11 +25,11 @@ class Our_loss(nn.Module):
         mask_pos = self._remove_diagonal(mask)
 
         sim_f2f = self._calculate_similarity_matrix(feature, feature)
-        sim_f2f = torch.exp(self._remove_diagonal(sim_f2f) / self.temp )
+        sim_f2f = torch.exp(self._remove_diagonal(sim_f2f) / self.temperature )
         sim_masked_f2f = mask_pos * sim_f2f
 
         sim_e2f = self._calculate_similarity_matrix(embed, feature)
-        sim_e2f = torch.exp(sim_e2f / self.temp)
+        sim_e2f = torch.exp(sim_e2f / self.temperature)
         sim_masked_e2f = mask * sim_e2f
 
         numerator   = sim_masked_f2f.sum(1) + sim_masked_e2f.sum(1)
@@ -41,10 +41,10 @@ class Our_loss(nn.Module):
 
 
 class ContraGAN_loss(nn.Module):
-    def __init__(self):
+    def __init__(self, temperature=1):
         super().__init__()
         self.sim_fn = nn.CosineSimilarity(dim=-1)
-        self.temp = 1
+        self.temperature = temperature
 
     def _calculate_similarity_matrix(self, v1, v2):
         return self.sim_fn(v1.unsqueeze(1), v2.unsqueeze(0))
@@ -62,11 +62,11 @@ class ContraGAN_loss(nn.Module):
         mask_pos = self._remove_diagonal(mask)
 
         sim_f2f = self._calculate_similarity_matrix(feature, feature)
-        sim_f2f = torch.exp(self._remove_diagonal(sim_f2f) / self.temp )
+        sim_f2f = torch.exp(self._remove_diagonal(sim_f2f) / self.temperature )
         sim_masked_f2f = mask_pos * sim_f2f
 
         sim_e2f = self.sim_fn(embed, feature)
-        sim_e2f = torch.exp(sim_e2f / self.temp)
+        sim_e2f = torch.exp(sim_e2f / self.temperature)
 
         numerator = sim_e2f + sim_masked_f2f.sum(1)
         denominator = torch.cat([sim_e2f.unsqueeze(1), sim_f2f], dim=1).sum(1)
