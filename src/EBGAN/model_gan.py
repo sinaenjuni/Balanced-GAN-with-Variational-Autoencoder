@@ -11,7 +11,7 @@ import wandb
 from pytorch_lightning.loggers import WandbLogger
 from EBGAN.models import Encoder, Decoder, Embedding_labeled_latent
 from torchmetrics.image.fid import FrechetInceptionDistance
-
+from torchmetrics.image.inception import InceptionScore
 
 
 class Generator(nn.Module):
